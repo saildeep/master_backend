@@ -2,7 +2,7 @@ import numpy as np
 
 
 def _vectorsComplexWrapper(vecIn: np.ndarray, fn: np.ufunc) -> np.ndarray:
-    assert vecIn.shape[0] == 2 and len(vecIn.shape) == 2
+    assertMultipleVec2d(vecIn)
     x = vecIn[0, :]
     y = vecIn[1, :]
     fn_out = fn(x + 1j * y)
@@ -12,6 +12,11 @@ def _vectorsComplexWrapper(vecIn: np.ndarray, fn: np.ufunc) -> np.ndarray:
     out = np.stack([x, y], axis=0)
     assert out.shape == vecIn.shape
     return out
+
+
+def assertMultipleVec2d(vec: np.ndarray):
+    assert vec.shape[0] == 2 and len(vec.shape) == 2
+    return vec
 
 
 # input 2xX area
