@@ -46,3 +46,10 @@ class TestMathutils(unittest.TestCase):
         expected = np.array([0, math.pi / 2, math.pi / 4])
         output_data = mathutils.vectorAngles(input_data)
         np.testing.assert_almost_equal(output_data, expected)
+
+    def test_euclideanDistSquared(self):
+        points = np.array([[0, 1], [0, 1]], dtype=float)
+        point = np.array([[0], [0]], dtype=float)
+        expected = np.array([0, 2], dtype=float)
+        out = mathutils.euclideanDistSquared(points, point)
+        np.testing.assert_almost_equal(out, expected)

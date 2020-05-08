@@ -48,3 +48,10 @@ def vectorAngles(vec: np.ndarray) -> np.ndarray:
     res = np.arctan2(vec[1, :], vec[0, :])
     res[res >= math.pi] -= 2 * math.pi
     return res
+
+
+def euclideanDistSquared(points: np.ndarray, point: np.ndarray):
+    assertSingleVec2d(point)
+    assertMultipleVec2d(points)
+    res = np.sum(np.square(points - point), axis=0)
+    return res
