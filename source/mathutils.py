@@ -57,6 +57,10 @@ def euclideanDistSquared(points: np.ndarray, point: np.ndarray):
     return res
 
 
+def euclideanDist(points: np.ndarray, point: np.ndarray):
+    return np.sqrt(euclideanDistSquared(points, point))
+
+
 def createRotationMatrix(angle: float) -> np.ndarray:
     return np.array([
         [math.cos(angle), -1 * math.sin(angle)],

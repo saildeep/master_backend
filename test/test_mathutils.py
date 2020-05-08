@@ -54,6 +54,13 @@ class TestMathutils(unittest.TestCase):
         out = mathutils.euclideanDistSquared(points, point)
         np.testing.assert_almost_equal(out, expected)
 
+    def test_euclideanDist(self):
+        points = np.array([[0, 1], [0, 1]], dtype=float)
+        point = np.array([[0], [0]], dtype=float)
+        expected = np.array([0, math.sqrt(2)], dtype=float)
+        out = mathutils.euclideanDist(points, point)
+        np.testing.assert_almost_equal(out, expected)
+
     def test_createRotationMatrix(self):
         zeroRot = mathutils.createRotationMatrix(0)
         np.testing.assert_almost_equal(zeroRot, np.array([
