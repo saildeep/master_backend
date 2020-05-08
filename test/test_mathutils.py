@@ -53,3 +53,20 @@ class TestMathutils(unittest.TestCase):
         expected = np.array([0, 2], dtype=float)
         out = mathutils.euclideanDistSquared(points, point)
         np.testing.assert_almost_equal(out, expected)
+
+    def test_createRotationMatrix(self):
+        zeroRot = mathutils.createRotationMatrix(0)
+        np.testing.assert_almost_equal(zeroRot, np.array([
+            [1, 0],
+            [0, 1]
+        ]))
+
+        piRot = mathutils.createRotationMatrix(math.pi)
+        np.testing.assert_almost_equal(piRot, np.array([
+            [-1, 0],
+            [0, -1]
+        ]))
+
+        beforeRot = np.array([[0], [1]])
+        afterRot = np.matmul(piRot, beforeRot)
+        np.testing.assert_almost_equal(afterRot, np.array([[0], [-1]]))

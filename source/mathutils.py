@@ -55,3 +55,11 @@ def euclideanDistSquared(points: np.ndarray, point: np.ndarray):
     assertMultipleVec2d(points)
     res = np.sum(np.square(points - point), axis=0)
     return res
+
+
+def createRotationMatrix(angle: float) -> np.ndarray:
+    return np.array([
+        [math.cos(angle), -1 * math.sin(angle)],
+        [math.sin(angle), math.cos(angle)
+         ]
+    ])
