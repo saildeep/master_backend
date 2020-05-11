@@ -11,6 +11,7 @@ from source.mathutils import \
     complexExp
 from source.lat_lng import LatLng
 from source.preprojections import LambertAzimuthalEqualArea, AbstractPreprojection
+from source.smoothing_functions import AbstractSmoothingFunction, NoSmoothingFunction
 
 
 class ComplexLogProjection():
@@ -18,7 +19,8 @@ class ComplexLogProjection():
                  center1: LatLng,
                  center2: LatLng,
                  smoothing_angle_radians: float,
-                 preprojection: AbstractPreprojection = LambertAzimuthalEqualArea()):
+                 preprojection: AbstractPreprojection = LambertAzimuthalEqualArea(),
+                 smoothing_function_type: AbstractSmoothingFunction.__class__ = NoSmoothingFunction):
         self.preprojection = preprojection  # is not centered around the center point
         self.center1 = preprojection(np.array([[center1.lat], [center1.lng]]))
         self.center2 = preprojection(np.array([[center2.lat], [center2.lng]]))
@@ -28,7 +30,8 @@ class ComplexLogProjection():
 
         self.theta1 = math.pi - vectorAngles(self.center1 - self.midpoint)[0]
         self.theta2 = math.pi - vectorAngles(self.center2 - self.midpoint)[0]
-        pass
+
+        self.smoothing_function: AbstractSmoothingFunction = smoothing_function_type(smoothing_angle_radians)
 
     def __call__(self, latlng: np.ndarray) -> np.ndarray:
         assertMultipleVec2d(latlng)
@@ -71,7 +74,7 @@ class ComplexLogProjection():
 
         points *= self.scale
         points = complexLog(points)
-        # TODO smoothing function
+        points = self.smoothing_function(points)
 
         points *= direction
 
@@ -79,7 +82,7 @@ class ComplexLogProjection():
 
     def _single_backward(self, points: np.ndarray, center: np.ndarray, theta: float, direction: int) -> np.ndarray:
         points /= direction
-        # TODO smoothing function
+        points = self.smoothing_function.invert(points)
         points = complexExp(points)
         points /= self.scale
 
