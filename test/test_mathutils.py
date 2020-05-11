@@ -77,3 +77,8 @@ class TestMathutils(unittest.TestCase):
         beforeRot = np.array([[0], [1]])
         afterRot = np.matmul(piRot, beforeRot)
         np.testing.assert_almost_equal(afterRot, np.array([[0], [-1]]))
+
+    def test_normalizeAngles(self):
+        data = np.array([0, 5.5 * math.pi, -1.5 * math.pi])
+        expected = np.array([0, -.5 * math.pi, .5 * math.pi])
+        np.testing.assert_almost_equal(mathutils.normalizeAngles(data), expected)

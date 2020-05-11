@@ -67,3 +67,11 @@ def createRotationMatrix(angle: float) -> np.ndarray:
         [math.sin(angle), math.cos(angle)
          ]
     ])
+
+
+# map any angle to -pi to pi range
+def normalizeAngles(angles: np.ndarray) -> np.ndarray:
+    angles = np.remainder(angles, 2 * math.pi)
+    selection = angles > math.pi
+    angles[selection] -= 2 * math.pi
+    return angles
