@@ -1,5 +1,6 @@
 import numpy as np
 import math
+
 from source.mathutils import \
     assertMultipleVec2d, \
     midpoint, \
@@ -12,9 +13,10 @@ from source.mathutils import \
 from source.lat_lng import LatLng
 from source.preprojections import LambertAzimuthalEqualArea, AbstractPreprojection
 from source.smoothing_functions import AbstractSmoothingFunction, NoSmoothingFunction
+from source.zoomable_projection import ZoomableProjection
 
 
-class ComplexLogProjection():
+class ComplexLogProjection(ZoomableProjection):
     def __init__(self,
                  center1: LatLng,
                  center2: LatLng,
@@ -86,8 +88,8 @@ class ComplexLogProjection():
         points = complexExp(points)
         points /= self.scale
 
-        rotMat = createRotationMatrix(-1 * theta)
-        points = np.matmul(rotMat, points)
+        rot_mat = createRotationMatrix(-1 * theta)
+        points = np.matmul(rot_mat, points)
 
         points += center
 
