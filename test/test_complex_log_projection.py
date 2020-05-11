@@ -11,9 +11,10 @@ class TestComplexLogProjection(unittest.TestCase):
 
     def test_loop(self):
         projection = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
+        # only small slice where no stitching was used
         data = np.array([
-            [-10, 1, 10, 20],
-            [-10, 1, -10, 4]
+            [1, 9],
+            [1, 9]
         ])
         res = projection(data.copy())
         returned = projection.invert(res.copy())
@@ -38,8 +39,7 @@ class TestComplexLogProjection(unittest.TestCase):
             [1, 0, 45, 45]
         ])
         center = np.array([[0], [0]])
-        projected = projection._single_forward(data, center, math.pi, 1)
-        pass
+        projection._single_forward(data, center, math.pi, 1)
 
     def test_complete(self):
         projection = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)

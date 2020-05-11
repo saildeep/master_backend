@@ -46,8 +46,7 @@ class AbstractAzimutalProject(AbstractPreprojection):
         res_lng = np.divide(y * sc, z, where=z != 0)
         res_lng[z == 0] = 0
         return np.stack([
-            np.arctan2(x * sc, z * cc)
-            , np.arcsin(res_lng)], axis=0)
+            np.arctan2(x * sc, z * cc), np.arcsin(res_lng)], axis=0)
 
     @abc.abstractmethod
     def _scale(self, cxcy: np.ndarray) -> np.ndarray:

@@ -25,8 +25,7 @@ class TestPreprojections(unittest.TestCase):
                                        [-0.5773502691896257, 0.8164965809277259]])
 
         np.testing.assert_almost_equal(output_data, desired_output)
-        np.testing.assert_almost_equal(projection.invert(output_data),input_data)
-
+        np.testing.assert_almost_equal(projection.invert(output_data), input_data)
 
     def test_lambertEqualDistance(self):
         projection = preprojections.LambertAzimuthalEqualDistance()

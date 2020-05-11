@@ -26,8 +26,8 @@ class ComplexLogProjection():
         self.midpoint = midpoint(self.center1, self.center2)
         self.scale = (1.0 / euclideanDist(self.center1, self.midpoint))[0]
 
-        self.theta1 = math.pi  - vectorAngles(self.center1 - self.midpoint)[0]
-        self.theta2 = math.pi -  vectorAngles(self.center2 - self.midpoint)[0]
+        self.theta1 = math.pi - vectorAngles(self.center1 - self.midpoint)[0]
+        self.theta2 = math.pi - vectorAngles(self.center2 - self.midpoint)[0]
         pass
 
     def __call__(self, latlng: np.ndarray) -> np.ndarray:
@@ -51,8 +51,8 @@ class ComplexLogProjection():
 
     def invert(self, xy: np.ndarray):
         assertMultipleVec2d(xy)
-        selection_c1 = xy[0, :] > 0
-        selection_c2 = xy[0, :] <= 0
+        selection_c1 = xy[0, :] < 0
+        selection_c2 = xy[0, :] >= 0
 
         data_c1 = xy[:, selection_c1]
         data_c2 = xy[:, selection_c2]
@@ -78,7 +78,6 @@ class ComplexLogProjection():
         return points
 
     def _single_backward(self, points: np.ndarray, center: np.ndarray, theta: float, direction: int) -> np.ndarray:
-
         points /= direction
         # TODO smoothing function
         points = complexExp(points)
