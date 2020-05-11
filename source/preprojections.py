@@ -13,7 +13,9 @@ class AbstractPreprojection(abc.ABC):
 
     def invert(self, xy: np.ndarray) -> np.ndarray:
         mathutils.assertMultipleVec2d(xy)
-        return mathutils.assertMultipleVec2d(np.rad2deg(self._backward(xy)))
+        return mathutils.assertMultipleVec2d(
+            np.rad2deg(self._backward(xy))
+        )
 
     @abc.abstractmethod
     def _forward(self, latlng_radians: np.ndarray) -> np.ndarray:
@@ -35,13 +37,17 @@ class AbstractAzimutalProject(AbstractPreprojection):
         return np.stack([k * cy * np.sin(x), k * np.sin(y)])
 
     def _backward(self, xy: np.ndarray) -> np.ndarray:
-        z = np.sqrt(np.square(xy[0, :]) + np.square(xy[1, :]))
+        x = xy[0, :]
+        y = xy[1, :]
+        z = np.sqrt(x * x + y * y)
         c = self._angle(z)
         sc = np.sin(c)
         cc = np.cos(c)
-        res_lng = xy[1, :] * sc / z
+        res_lng = np.divide(y * sc, z, where=z != 0)
         res_lng[z == 0] = 0
-        return np.stack([np.arctan2(xy[0, :] * sc, z * cc), res_lng], axis=0)
+        return np.stack([
+            np.arctan2(x * sc, z * cc)
+            , np.arcsin(res_lng)], axis=0)
 
     @abc.abstractmethod
     def _scale(self, cxcy: np.ndarray) -> np.ndarray:
