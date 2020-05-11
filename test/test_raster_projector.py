@@ -1,5 +1,7 @@
 import unittest
 
+from source.complex_log_projection import ComplexLogProjection
+from source.lat_lng import LatLng
 from source.raster_data.function_raster_data_provider import CosSinRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.zoomable_projection import IdentityProjection
@@ -23,8 +25,12 @@ class TestRasterProjector(unittest.TestCase):
         k = d[0, 50, 0]
         assert k == 127 and k == d[0, 0, 0]
 
-        # import matplotlib.pyplot as plt
-        # plt.imshow(d)
-        # plt.show()
+    def test_project_image(self):
+        projection = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
+        projector = RasterProjector(projection, CosSinRasterDataProvider())
+        trange = TargetSectionDescription(-1, 1, 300, -1, 1, 300)
+        d = projector.project(trange)
 
-        pass
+        import matplotlib.pyplot as plt
+        plt.imshow(d)
+        plt.show()
