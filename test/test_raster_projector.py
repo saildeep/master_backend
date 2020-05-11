@@ -25,10 +25,10 @@ class TestRasterProjector(unittest.TestCase):
         k = d[0, 50, 0]
         assert k == 127 and k == d[0, 0, 0]
 
-    def test_project_image(self):
+    def project_image(self):
         projection = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
         projector = RasterProjector(projection, CosSinRasterDataProvider())
-        trange = TargetSectionDescription(-1, 1, 300, -1, 1, 300)
+        trange = TargetSectionDescription(-1, 1, 500, -1, 1, 300)
         d = projector.project(trange)
 
         import matplotlib.pyplot as plt
