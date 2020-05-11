@@ -21,15 +21,15 @@ class ComplexLogProjection():
                  smoothing_angle_radians: float,
                  preprojection: AbstractPreprojection = LambertAzimuthalEqualArea(),
                  smoothing_function_type: AbstractSmoothingFunction.__class__ = NoSmoothingFunction):
-        self.preprojection = preprojection  # is not centered around the center point
-        self.center1 = preprojection(np.array([[center1.lat], [center1.lng]]))
-        self.center2 = preprojection(np.array([[center2.lat], [center2.lng]]))
-        self.smoothing_angle = smoothing_angle_radians
-        self.midpoint = midpoint(self.center1, self.center2)
-        self.scale = (1.0 / euclideanDist(self.center1, self.midpoint))[0]
+        self.preprojection: AbstractPreprojection = preprojection  # is not centered around the center point
+        self.center1: np.ndarray = preprojection(np.array([[center1.lat], [center1.lng]]))
+        self.center2: np.ndarray = preprojection(np.array([[center2.lat], [center2.lng]]))
+        self.smoothing_angle: float = smoothing_angle_radians
+        self.midpoint: np.ndarray = midpoint(self.center1, self.center2)
+        self.scale: float = (1.0 / euclideanDist(self.center1, self.midpoint))[0]
 
-        self.theta1 = math.pi - vectorAngles(self.center1 - self.midpoint)[0]
-        self.theta2 = math.pi - vectorAngles(self.center2 - self.midpoint)[0]
+        self.theta1: float = math.pi - vectorAngles(self.center1 - self.midpoint)[0]
+        self.theta2: float = math.pi - vectorAngles(self.center2 - self.midpoint)[0]
 
         self.smoothing_function: AbstractSmoothingFunction = smoothing_function_type(smoothing_angle_radians)
 
