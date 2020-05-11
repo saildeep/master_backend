@@ -22,8 +22,6 @@ class TestRasterProjector(unittest.TestCase):
         d = projector.project(trange)
 
         assert d.shape[0] == trange.ysteps and d.shape[1] == trange.xsteps
-        k = d[0, 50, 0]
-        assert k == 127 and k == d[0, 0, 0]
 
     def project_image(self):
         projection = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
