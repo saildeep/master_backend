@@ -92,3 +92,10 @@ class ComplexLogProjection():
         points += center
 
         return points
+
+    def getZoomLevel(self, pixel_data: np.ndarray) -> np.ndarray:
+        assertMultipleVec2d(pixel_data)
+        pixel_data = pixel_data.copy()
+        pixel_data[0, :] = -np.abs(pixel_data[0, :])
+        data_offset = self.smoothing_function.invert(pixel_data)
+        return np.exp(np.abs(data_offset[0, :]))

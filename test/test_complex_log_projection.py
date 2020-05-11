@@ -55,3 +55,10 @@ class TestComplexLogProjection(unittest.TestCase):
         projected = projection(data)
         np.testing.assert_almost_equal(projected, reference)
         pass
+
+    def testZoomLevel(self):
+        projection = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
+        data = np.array([[-1, -2, 1, 2], [0, 1, 1, 0]])
+        expected = np.array([np.exp(1), np.exp(2), np.exp(1), np.exp(2)])
+        res = projection.getZoomLevel(data)
+        np.testing.assert_almost_equal(res, expected)
