@@ -30,6 +30,16 @@ def latlngToXY(latlng: LatLng, zoom: int) -> Tuple[float, float]:
     return x, y
 
 
+def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256) -> Tuple[OSMTile, Tuple[float, float]]:
+    x, y = latlngToXY(latlng, zoom)
+    x -= int(x)
+    y -= int(y)
+
+    x = math.min(int(x * tile_size), tile_size - 1)
+    y = math.min(int(y * tile_size), tile_size - 1)
+    return x, y
+
+
 def latlngToTile(latlng: LatLng, zoom: int) -> OSMTile:
     x, y = latlngToXY(latlng, zoom)
     x_tile = int(x)

@@ -20,7 +20,7 @@ class RasterProjector():
         self.projection = projection
         self.data_source = data_source
 
-    def _build_grid(self, trange: TargetSectionDescription):
+    def build_grid(self, trange: TargetSectionDescription) -> np.ndarray:
         x_series = np.linspace(trange.xmin, trange.xmax, num=trange.xsteps)
         y_series = np.linspace(trange.ymin, trange.ymax, num=trange.ysteps)
 
@@ -34,11 +34,17 @@ class RasterProjector():
 
         return xy
 
+    def reshape_grid(self, data: np.ndarray, trange: TargetSectionDescription, channels):
+        assert data.shape == (channels, trange.xsteps * trange.ysteps)
+        data_reshaped = np.reshape(np.transpose(data), (trange.ysteps, trange.xsteps, channels))
+        return data_reshaped
+
+    # (y,x,3) array with corresping (lat,lng,zoom) information
     def project(self, trange: TargetSectionDescription) -> np.ndarray:
-        grid = self._build_grid(trange)
+        grid = self.build_grid(trange)
         inverted = self.projection.invert(grid)
         zoom = np.expand_dims(self.projection.getZoomLevel(grid), axis=0)
         position_and_zoom = np.concatenate([inverted, zoom], axis=0)
         data = self.data_source.getData(position_and_zoom)
-        data_reshaped = np.reshape(np.transpose(data), (trange.ysteps, trange.xsteps, 3))
+        data_reshaped = self.reshape_grid(data, trange, 3)
         return data_reshaped

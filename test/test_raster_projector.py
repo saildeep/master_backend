@@ -13,7 +13,7 @@ class TestRasterProjector(unittest.TestCase):
     def test_grid(self):
         projector = RasterProjector(IdentityProjection(), CosSinRasterDataProvider())
         trange = TargetSectionDescription(-1, 1, 3, -1, 1, 3)
-        grid = projector._build_grid(trange)
+        grid = projector.build_grid(trange)
         assert len(grid.shape) == 2 and grid.shape[1] == 3 * 3
 
     def test_project(self):
