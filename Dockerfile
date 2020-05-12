@@ -1,12 +1,13 @@
 FROM python:3.6
 RUN useradd -ms /bin/bash admin
-COPY source /source
+RUN mkdir -p /app
+ADD ./* /app
 
-WORKDIR /source
+WORKDIR /app
 RUN pip install -r requirements.txt
 
 USER admin
 
 EXPOSE 5000/tcp
 
-CMD ["python", "webserver.py"]
+CMD ["python", "source/webserver.py"]
