@@ -2,6 +2,7 @@ import abc
 import os
 import tempfile
 import warnings
+from threading import Lock
 from typing import Optional, List
 import io
 from PIL import Image
@@ -73,27 +74,29 @@ class AbstractTileCache(AbstractTileImageResolver):
     def __init__(self, fallback: AbstractTileImageResolver, rules: List[AbstractCacheRule]):
         self.fallback = fallback
         self.rules = rules
+        self.lock = Lock()
 
     def __call__(self, tile: OSMTile) -> Image.Image:
-        res = self.getCache(tile)
+        with self.lock:
+            res = self.getCache(tile)
 
-        if res is not None:
+            if res is not None:
+                return res
+
+            res = self.fallback(tile)
+            if res is None:
+                raise FileNotFoundError("Could not resolver " + tile.__str__())
+            for rule in self.rules:
+                if rule(tile):
+                    rule.put(tile)
+                    self.putCache(tile, res)
+                    # clean up cache after inserting the new one
+                    for removeable_tile in rule.removable():
+                        rule.remove(removeable_tile)
+                        self.removeCache(removeable_tile)
+
+                    break
             return res
-
-        res = self.fallback(tile)
-        if res is None:
-            raise FileNotFoundError("Could not resolver " + tile.__str__())
-        for rule in self.rules:
-            if rule(tile):
-                rule.put(tile)
-                self.putCache(tile, res)
-                # clean up cache after inserting the new one
-                for removeable_tile in rule.removable():
-                    rule.remove(removeable_tile)
-                    self.removeCache(removeable_tile)
-
-                break
-        return res
 
     @abc.abstractmethod
     def getCache(self, tile: OSMTile) -> Optional[Image.Image]:
