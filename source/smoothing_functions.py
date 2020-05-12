@@ -49,6 +49,12 @@ class AngleScalingSmoothingFunction(AbstractSmoothingFunction):
         pass
 
 
+class CosCutoffSmoothingFunction(AngleScalingSmoothingFunction):
+
+    def scale(self, data: np.ndarray):
+        return np.maximum(np.cos(data), np.cos(self.cutoff_angle))
+
+
 class DualCosSmoothingFunction(AngleScalingSmoothingFunction):
 
     def scale(self, data: np.ndarray):

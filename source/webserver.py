@@ -7,7 +7,7 @@ from source.complex_log_projection import ComplexLogProjection
 from source.lat_lng import LatLng
 from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
-from source.smoothing_functions import DualCosSmoothingFunction
+from source.smoothing_functions import CosCutoffSmoothingFunction
 from PIL import Image
 
 app = Flask(__name__)
@@ -23,7 +23,7 @@ def projection(lat1, lng1, lat2, lng2):
     c1 = LatLng(lat1, lng1)
     c2 = LatLng(lat2, lng2)
     projection = ComplexLogProjection(c1, c2, math.pi / 6,
-                                      smoothing_function_type=DualCosSmoothingFunction)
+                                      smoothing_function_type=CosCutoffSmoothingFunction)
     projector = RasterProjector(projection, data_provider)
     trange = TargetSectionDescription(-math.pi * 3, math.pi * 3, 3000, -math.pi, math.pi, 1000)
     d = projector.project(trange)
