@@ -10,6 +10,15 @@ class OSMTile():
         self.y = y
         self.zoom = zoom
 
+    def __hash__(self):
+        return hash((self.x, self.y, self.zoom))
+
+    def __str__(self):
+        return str(self.x) + '-' + str(self.y) + "-" + str(self.zoom)
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.zoom == other.zoom
+
 
 def latlngToXY(latlng: LatLng, zoom: int) -> Tuple[float, float]:
     lat_deg = latlng.lat
