@@ -35,7 +35,7 @@ class TestRasterProjector(unittest.TestCase):
         plt.imshow(d)
         plt.show()
 
-    def project_image_osm(self):
+    def test_project_image_osm(self):
         konstanz = LatLng(47.711801, 9.084545)
         hoffeld = LatLng(48.735051, 9.181156)
         projection = ComplexLogProjection(konstanz, hoffeld, math.pi / 6,

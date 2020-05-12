@@ -74,10 +74,15 @@ class AbstractTileCache(AbstractTileImageResolver):
     def __init__(self, fallback: AbstractTileImageResolver, rules: List[AbstractCacheRule]):
         self.fallback = fallback
         self.rules = rules
-        self.lock = Lock()
+
+        num_locks = 128
+        self.locks = []
+        for l in range(num_locks):
+            self.locks.append(Lock())
 
     def __call__(self, tile: OSMTile) -> Image.Image:
-        with self.lock:
+        lock = self.locks[tile.__hash__()%len(self.locks)]
+        with lock:
             res = self.getCache(tile)
 
             if res is not None:
