@@ -135,6 +135,7 @@ class FileTileCache(AbstractTileCache):
 
     def putCache(self, tile: OSMTile, image: Image.Image):
         path = self.filename_resolver(tile)
+        # TODO make writing atomic
         if not os.path.isfile(path):
             image.save(path, "PNG")
         else:
