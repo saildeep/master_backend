@@ -42,7 +42,7 @@ class HTTPTileFileResolver(AbstractTileImageResolver):
 
         url = self.url_resolver(tile)
         try:
-            im = Image.open(urlopen(url))
+            im = Image.open(urlopen(url)).copy()
             return im
         except HTTPError as err:
             if err.code == 404:

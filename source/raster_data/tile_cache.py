@@ -2,10 +2,11 @@ import abc
 import os
 import tempfile
 import warnings
-from threading import Lock
+from threading import RLock
 from typing import Optional, List
-import io
+
 from PIL import Image
+from contextlib import suppress
 
 from source.raster_data.tile_math import OSMTile
 from source.raster_data.tile_resolver import AbstractTileImageResolver
@@ -74,15 +75,11 @@ class AbstractTileCache(AbstractTileImageResolver):
     def __init__(self, fallback: AbstractTileImageResolver, rules: List[AbstractCacheRule]):
         self.fallback = fallback
         self.rules = rules
-
-        num_locks = 128
-        self.locks = []
-        for l in range(num_locks):
-            self.locks.append(Lock())
+        self.lock = RLock()
 
     def __call__(self, tile: OSMTile) -> Image.Image:
-        lock = self.locks[tile.__hash__()%len(self.locks)]
-        with lock:
+
+        with self.lock:
             res = self.getCache(tile)
 
             if res is not None:
@@ -93,6 +90,7 @@ class AbstractTileCache(AbstractTileImageResolver):
                 raise FileNotFoundError("Could not resolver " + tile.__str__())
             for rule in self.rules:
                 if rule(tile):
+
                     rule.put(tile)
                     self.putCache(tile, res)
                     # clean up cache after inserting the new one
@@ -122,18 +120,19 @@ class FileTileCache(AbstractTileCache):
                  filename_resolver: TileFilenameResolver = TileFilenameResolver()):
         super(FileTileCache, self).__init__(fallback, rules)
         self.filename_resolver = filename_resolver
+        self.lock = suppress()
 
     def getCache(self, tile: OSMTile) -> Optional[Image.Image]:
+
         path = self.filename_resolver(tile)
         if os.path.isfile(path):
-            im = 1
-            with open(path, "rb") as f:
-                im = Image.open(io.BytesIO(f.read()))
-            return im
+            im: Image.Image = Image.open(path, mode='r')
+            return im.copy()
         else:
             return None
 
     def putCache(self, tile: OSMTile, image: Image.Image):
+
         path = self.filename_resolver(tile)
         # TODO make writing atomic
         if not os.path.isfile(path):
@@ -151,6 +150,7 @@ class MemoryTileCache(AbstractTileCache):
     def __init__(self, fallback: AbstractTileImageResolver, rules: List[AbstractCacheRule]):
         super(MemoryTileCache, self).__init__(fallback, rules)
         self.storage = {}
+        self.lock = suppress()
 
     def getCache(self, tile: OSMTile) -> Optional[Image.Image]:
         hash = tile.__str__()

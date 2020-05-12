@@ -37,4 +37,3 @@ def projection(lat1, lng1, lat2, lng2):
 @app.route('/test')
 def test():
     return "Hello World"
-
