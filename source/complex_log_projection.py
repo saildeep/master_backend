@@ -100,4 +100,4 @@ class ComplexLogProjection(ZoomableProjection):
         pixel_data = pixel_data.copy()
         pixel_data[0, :] = -np.abs(pixel_data[0, :])
         data_offset = self.smoothing_function.invert(pixel_data)
-        return np.exp(np.abs(data_offset[0, :]))
+        return np.abs(data_offset[0, :]) + np.log(self.scale)

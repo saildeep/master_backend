@@ -35,8 +35,8 @@ def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256) -> Tuple[
     x -= int(x)
     y -= int(y)
 
-    x = math.min(int(x * tile_size), tile_size - 1)
-    y = math.min(int(y * tile_size), tile_size - 1)
+    x = min(int(x * tile_size), tile_size - 1)
+    y = min(int(y * tile_size), tile_size - 1)
     return x, y
 
 
@@ -45,3 +45,25 @@ def latlngToTile(latlng: LatLng, zoom: int) -> OSMTile:
     x_tile = int(x)
     y_tile = int(y)
     return OSMTile(x_tile, y_tile, zoom)
+
+
+def tileExists(tile: OSMTile, max_zoom: int = 19) -> bool:
+    if tile.zoom < 0:
+        return False
+    if tile.zoom > max_zoom:
+        return False
+
+    if tile.x < 0:
+        return False
+    if tile.y < 0:
+        return False
+
+    r = 2 ** tile.zoom
+
+    if tile.x >= r:
+        return False
+
+    if tile.y >= r:
+        return False
+
+    return True
