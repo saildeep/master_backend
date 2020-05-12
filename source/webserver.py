@@ -17,7 +17,8 @@ data_provider = OSMRasterDataProvider()
 
 # sample http://127.0.0.1:5000/projection/lat1/10.0/lng1/10.0/lat2/0.0/lng2/0.0.png
 @app.route(
-    "/projection/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>.png")
+    "/projection/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>.png")
 def projection(lat1, lng1, lat2, lng2):
     c1 = LatLng(lat1, lng1)
     c2 = LatLng(lat2, lng2)
@@ -28,6 +29,10 @@ def projection(lat1, lng1, lat2, lng2):
     d = projector.project(trange)
     pilim = Image.fromarray(d)
     img_io = BytesIO()
-    pilim.save(img_io,'PNG')
+    pilim.save(img_io, 'PNG')
     img_io.seek(0)
-    return  send_file(img_io,mimetype='image/png')
+    return send_file(img_io, mimetype='image/png')
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0')
