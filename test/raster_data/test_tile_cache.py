@@ -10,7 +10,7 @@ class TestFileTileCache(unittest.TestCase):
         rules = [
             MaxZoomLevelCacheRule(8)
         ]
-        fcache = FileTileCache(HTTPTileFileResolver(), rules)
+        fcache = FileTileCache(HTTPTileFileResolver(None), rules)
         t1 = fcache(OSMTile(0, 0, 0))
         assert t1.height == 256
         t2 = fcache(OSMTile(5, 10, 6))

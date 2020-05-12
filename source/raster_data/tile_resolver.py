@@ -31,9 +31,9 @@ class UniformColorResolver(AbstractTileImageResolver):
 
 
 class HTTPTileFileResolver(AbstractTileImageResolver):
-    def __init__(self, fallback: AbstractTileImageResolver, url_resolver: TileURLResolver = TileURLResolver()):
+    def __init__(self, url_resolver: TileURLResolver = TileURLResolver()):
         self.url_resolver = url_resolver
-        self.fallback = fallback
+
         self.non_existing_tiles = {}
 
     def __call__(self, tile) -> Image.Image:

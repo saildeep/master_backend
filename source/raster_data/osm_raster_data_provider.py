@@ -6,7 +6,7 @@ from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
 from source.raster_data.tile_cache import FileTileCache, MaxZoomLevelCacheRule, MemoryTileCache, LastUsedCacheRule
 from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists
-from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver, UniformColorResolver
+from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
 
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
@@ -22,8 +22,8 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         self.max_zoom_level = max_zoom_level
 
     def defaultTileResolver(self) -> AbstractTileImageResolver:
-        r = UniformColorResolver()
-        r = HTTPTileFileResolver(r)
+
+        r = HTTPTileFileResolver()
         r = FileTileCache(r, [
             MaxZoomLevelCacheRule(13)
         ])

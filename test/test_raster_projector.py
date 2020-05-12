@@ -5,6 +5,7 @@ from source.lat_lng import LatLng
 from source.raster_data.function_raster_data_provider import CosSinRasterDataProvider
 from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
+from source.smoothing_functions import DualCosSmoothingFunction
 from source.zoomable_projection import IdentityProjection
 
 import math
@@ -34,10 +35,11 @@ class TestRasterProjector(unittest.TestCase):
         plt.imshow(d)
         plt.show()
 
-    def project_image_osm(self):
+    def test_project_image_osm(self):
         konstanz = LatLng(47.711801, 9.084545)
         hoffeld = LatLng(48.735051, 9.181156)
-        projection = ComplexLogProjection(konstanz, hoffeld, math.pi / 4)
+        projection = ComplexLogProjection(konstanz, hoffeld, math.pi / 6,
+                                          smoothing_function_type=DualCosSmoothingFunction)
         projector = RasterProjector(projection, OSMRasterDataProvider())
         trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 500, -math.pi, math.pi, 250)
         d = projector.project(trange)
