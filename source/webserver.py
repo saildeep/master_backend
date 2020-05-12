@@ -38,7 +38,3 @@ def projection(lat1, lng1, lat2, lng2):
 def test():
     return "Hello World"
 
-
-if __name__ == '__main__':
-    print("Exec main")
-    app.run(host='0.0.0.0')
