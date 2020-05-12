@@ -10,4 +10,4 @@ USER admin
 
 EXPOSE 5000/tcp
 
-CMD ["python", "/app/source/webserver.py"]
+CMD ["python", "source/webserver.py"]
