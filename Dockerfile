@@ -10,4 +10,4 @@ USER admin
 
 EXPOSE 5000/tcp
 ENV PYTHONPATH /app
-CMD ["uwsgi","--socket","0.0.0.0:5000","--protocol","http","-w","source.wsgi:app", "-M","--workers","10]
+CMD ["uwsgi","--socket","0.0.0.0:5000","--protocol","http","-w","source.wsgi:app", "-M","--workers","10"]
