@@ -33,6 +33,6 @@ def projection(lat1, lng1, lat2, lng2):
     img_io.seek(0)
     return send_file(img_io, mimetype='image/png')
 
-
 if __name__ == '__main__':
+    print("Exec main")
     app.run(host='0.0.0.0')

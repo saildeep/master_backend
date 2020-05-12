@@ -9,5 +9,5 @@ RUN pip install -r requirements.txt
 USER admin
 
 EXPOSE 5000/tcp
-
+ENV PYTHONPATH /app
 CMD ["python", "source/webserver.py"]
