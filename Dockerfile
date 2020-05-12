@@ -1,5 +1,4 @@
-FROM python:3.6
-RUN useradd -ms /bin/bash admin
+FROM tiangolo/uwsgi-nginx-flask:python3.8
 RUN mkdir -p /app
 COPY . /app
 WORKDIR /app
