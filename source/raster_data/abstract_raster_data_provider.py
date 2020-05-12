@@ -7,7 +7,7 @@ class AbstractRasterDataProvider(abc.ABC):
 
     def getData(self, positions_with_zoom: np.ndarray) -> np.ndarray:
         assert len(positions_with_zoom.shape) == 2 and positions_with_zoom.shape[0] == 3
-        num_threads = 32
+        num_threads = 8
         cuts = np.linspace(0, positions_with_zoom.shape[1], num_threads + 1).astype(int)[1:-1]
         parts = np.split(positions_with_zoom, cuts, axis=1)
         assert len(parts) == num_threads
