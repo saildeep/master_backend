@@ -90,30 +90,38 @@ class MemoryTileCache(AbstractTileImageResolver):
 
 
 
-    def __init__(self, fallback: AbstractTileImageResolver,mem_size=500000):
+    def __init__(self, fallback: AbstractTileImageResolver,mem_size=500000,lock=False):
 
         self.fallback = fallback
         self.storage = OrderedDict()
         self.mem_size = mem_size
 
-        self.locks = [
-                   ]
+        self.locks = []
+        for i in range(8192):
+            if lock:
+                self.locks.append(RLock())
+            else:
+                self.locks.append(suppress())
 
 
     def __call__(self, tile: OSMTile) -> Image:
 
-        # assume this is atomic
-        im = self.storage.get(tile,None)
-        if im is not None:
-            return im
-        else:
-            image = self.fallback(tile)
-            if tile is None:
-                raise FileNotFoundError("Could not get tile "+ tile.__str__ + " from previous")
+        l = self.locks[tile.__hash__() % len(self.locks)]
+
+        with l:
+
+            # assume this is atomic
+            im = self.storage.get(tile,None)
+            if im is not None:
+                return im
             else:
-                self.storage[tile] =image
-                while len(self.storage) > self.mem_size:
-                    self.storage.popitem(last=False)
+                image = self.fallback(tile)
+                if tile is None:
+                    raise FileNotFoundError("Could not get tile "+ tile.__str__ + " from previous")
+                else:
+                    self.storage[tile] =image
+                    while len(self.storage) > self.mem_size:
+                        self.storage.popitem(last=False)
 
 
 

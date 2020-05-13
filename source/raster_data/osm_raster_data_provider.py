@@ -25,7 +25,9 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
 
         r = HTTPTileFileResolver()
         r = FileTileCache(r)
-        r = MemoryTileCache(r)
+
+        r = MemoryTileCache(r,mem_size=1000,lock=True) # small cache for th
+        r = MemoryTileCache(r,lock=False)
         return r
 
     def _sample(self, positions_with_zoom: np.ndarray) -> np.ndarray:
