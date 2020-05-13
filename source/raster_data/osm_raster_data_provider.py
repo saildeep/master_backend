@@ -8,7 +8,7 @@ from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
 from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
 
-from multiprocessing import Lock
+from multiprocessing import RLock
 
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
@@ -25,18 +25,16 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
     def _init_process(self, file_locks,zoom_offset,max_zoom_level):
         print("Started process")
         global process_data
-        process_data = (self.defaultTileResolver(file_locks),zoom_offset,max_zoom_level)
+        process_data = (self.defaultTileResolver(),zoom_offset,max_zoom_level)
 
     def _get_init_params(self):
-        locks = []
-        for i in range(4096):
-            locks.append(Lock())
-        return locks,self.zoom_offset,self.max_zoom_level
 
-    def defaultTileResolver(self, file_locks: List[Lock]) -> AbstractTileImageResolver:
+        return None,self.zoom_offset,self.max_zoom_level
+
+    def defaultTileResolver(self) -> AbstractTileImageResolver:
 
         r = HTTPTileFileResolver()
-        r = FileTileCache(r,locks= file_locks )
+        r = FileTileCache(r)
 
         r = MemoryTileCache(r, mem_size=1000, lock=False)  # small cache for th
         r = MemoryTileCache(r, lock=False)

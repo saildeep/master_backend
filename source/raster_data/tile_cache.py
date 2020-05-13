@@ -28,6 +28,9 @@ class TileFilenameResolver:
     def __call__(self, tile: OSMTile) -> str:
         return os.path.join(self.basedir, "{0}-{1}-{2}.png".format(tile.x, tile.y, tile.zoom))
 
+    def temp(self,tile:OSMTile, pid:int)->str:
+        return os.path.join(self.basedir, "{0}-{1}-{2}_pid-{3}.png".format(tile.x, tile.y, tile.zoom,pid))
+
 
 class AbstractCacheRule(abc.ABC):
     @abc.abstractmethod
@@ -77,11 +80,16 @@ class FileTileCache(AbstractTileImageResolver):
     def putCache(self, tile: OSMTile, image: Image.Image):
 
         path = self.filename_resolver(tile)
-        # TODO make writing atomic
+        temp_path = self.filename_resolver.temp(tile,os.getpid())
+
         if not os.path.isfile(path):
-            image.save(path, "PNG")
+            image.save(temp_path, "PNG")
+            try:
+                os.rename(temp_path,path)
+            except OSError as err:
+                warnings.warn(err)
         else:
-            warnings.warn("Tried to write " + path + " to cached but it already existed")
+            debug("Tried to write " + path + " to cached but it already existed")
 
 
 class MemoryTileCache(AbstractTileImageResolver):
