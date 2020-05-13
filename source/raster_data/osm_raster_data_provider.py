@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 
@@ -8,58 +8,78 @@ from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
 from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
 
+from multiprocessing import Lock
+
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
 
     def __init__(self, tile_resolver: Optional[AbstractTileImageResolver] = None, zoom_offset: int = 4,
                  max_zoom_level: int = 19):
-        if tile_resolver is None:
-            self.tile_resolver = self.defaultTileResolver()
-        else:
-            self.tile_resolver = tile_resolver
+
+
 
         self.zoom_offset = zoom_offset
         self.max_zoom_level = max_zoom_level
+        super(OSMRasterDataProvider, self).__init__()
 
-    def defaultTileResolver(self) -> AbstractTileImageResolver:
+    def _init_process(self, file_locks,zoom_offset,max_zoom_level):
+        print("Started process")
+        global process_data
+        process_data = (self.defaultTileResolver(file_locks),zoom_offset,max_zoom_level)
+
+    def _get_init_params(self):
+        locks = []
+        for i in range(128):
+            locks.append(Lock())
+        return locks,self.zoom_offset,self.max_zoom_level
+
+    def defaultTileResolver(self, file_locks: List[Lock]) -> AbstractTileImageResolver:
 
         r = HTTPTileFileResolver()
-        r = FileTileCache(r)
+        r = FileTileCache(r,locks= file_locks )
 
         r = MemoryTileCache(r, mem_size=1000, lock=True)  # small cache for th
         r = MemoryTileCache(r, lock=False)
         return r
 
-    def _sample(self, positions_with_zoom: np.ndarray) -> np.ndarray:
-        lat_array = positions_with_zoom[0, :]
-        lng_array = positions_with_zoom[1, :]
-        zoom_array = positions_with_zoom[2, :]
-        out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
+    def _getSampleFN(self):
+        return _sample
 
-        for i in range(len(lat_array)):
-            lat = lat_array[i]
-            lng = lng_array[i]
-            latlng = LatLng(lat, lng)
-            zoom = min(int(zoom_array[i] + self.zoom_offset), self.max_zoom_level)
-            tile_image = None
-            while tile_image is None and zoom >= 0:
-                try:
+def _sample( positions_with_zoom: np.ndarray) -> np.ndarray:
+    global process_data
+    data_source:AbstractTileImageResolver = process_data[0]
+    zoom_offset = process_data[1]
+    max_zoom = process_data[2]
 
-                    tile = latlngToTile(latlng, zoom)
-                    assert tileExists(tile)
-                    tile_image = self.tile_resolver(tile)
-                except FileNotFoundError:
-                    zoom -= 1
+    lat_array = positions_with_zoom[0, :]
+    lng_array = positions_with_zoom[1, :]
+    zoom_array = positions_with_zoom[2, :]
+    out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
 
-            assert tile_image is not None
+    for i in range(len(lat_array)):
+        lat = lat_array[i]
+        lng = lng_array[i]
+        latlng = LatLng(lat, lng)
+        zoom = min(int(zoom_array[i] + zoom_offset), max_zoom)
+        tile_image = None
+        while tile_image is None and zoom >= 0:
+            try:
 
-            tile_pixel = latlngToTilePixel(latlng, zoom)
+                tile = latlngToTile(latlng, zoom)
+                assert tileExists(tile)
+                tile_image = data_source(tile)
+            except FileNotFoundError:
+                zoom -= 1
 
-            colors = tile_image.getpixel(tile_pixel)
-            if tile_image.mode == 'P':
-                colors = tile_image.palette.palette[colors * 3:colors * 3 + 3]
-                colors = np.frombuffer(colors, dtype=np.uint8, count=3)
+        assert tile_image is not None
 
-            out[:, i] = colors
+        tile_pixel = latlngToTilePixel(latlng, zoom)
 
-        return out
+        colors = tile_image.getpixel(tile_pixel)
+        if tile_image.mode == 'P':
+            colors = tile_image.palette.palette[colors * 3:colors * 3 + 3]
+            colors = np.frombuffer(colors, dtype=np.uint8, count=3)
+
+        out[:, i] = colors
+
+    return out

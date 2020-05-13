@@ -2,51 +2,30 @@ import abc
 
 import numpy as np
 import threading
+from multiprocessing import Pool
 import random
 import queue
 
 
 class AbstractRasterDataProvider(abc.ABC):
 
+    def __init__(self):
+
+        self.process_pool = Pool(processes=4,initializer=self._init_process,initargs=self._get_init_params())
+
+    def _init_process(self,* args):
+        pass
+
+    def _get_init_params(self):
+        return []
+
     def getData(self, positions_with_zoom: np.ndarray) -> np.ndarray:
         assert len(positions_with_zoom.shape) == 2 and positions_with_zoom.shape[0] == 3
-        num_chunks = 2048
-        cuts = np.linspace(0, positions_with_zoom.shape[1], num_chunks + 1).astype(int)[1:-1]
+
+        min_chunk_size = 50
+        cuts = np.arange(1,positions_with_zoom.shape[1]-2,min_chunk_size)
         parts = np.split(positions_with_zoom, cuts, axis=1)
-        assert len(parts) == num_chunks
-
-        thread_results = [None] * num_chunks
-
-        q = queue.Queue()
-        queue_data = list(enumerate(parts))
-        random.shuffle(queue_data)
-        for i, p in queue_data:
-            q.put((i, p))
-
-        def _sampleMultithread(qu):
-            while True:
-                pz = None
-                i = None
-                try:
-                    pair = qu.get(block=False)
-                    pz = pair[1]
-                    i = pair[0]
-
-                except queue.Empty:
-                    return
-
-                r = self._sample(pz)
-                thread_results[i] = r
-
-        threads = []
-        num_threads = 32
-        for tn in range(num_threads):
-            t = threading.Thread(target=_sampleMultithread, args=[q])
-            t.start()
-            threads.append(t)
-
-        for t in threads:
-            t.join()
+        thread_results = self.process_pool.map(self._getSampleFN(),parts)
 
         res = np.concatenate(thread_results, axis=1)
 
@@ -57,6 +36,6 @@ class AbstractRasterDataProvider(abc.ABC):
         return res
 
     @abc.abstractmethod
-    # gets x,y, zoomlevel and should equally sized RGB
-    def _sample(self, positions_with_zoom: np.ndarray) -> np.ndarray:
+    def _getSampleFN(self):
         pass
+

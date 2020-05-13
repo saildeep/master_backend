@@ -47,13 +47,11 @@ class AbstractCacheRule(abc.ABC):
 class FileTileCache(AbstractTileImageResolver):
 
     def __init__(self, fallback: AbstractTileImageResolver,
-                 filename_resolver: TileFilenameResolver = TileFilenameResolver()):
+                 filename_resolver: TileFilenameResolver = TileFilenameResolver(),locks = [suppress()]):
 
         self.fallback = fallback
         self.filename_resolver = filename_resolver
-        self.locks = []
-        for i in range(8192):
-            self.locks.append(RLock())
+        self.locks = locks
 
     def __call__(self, tile: OSMTile) -> Image:
         mylock = self.locks[tile.__hash__() % len(self.locks)]
