@@ -116,7 +116,6 @@ class MemoryTileCache(AbstractTileImageResolver):
                         im = self.fallback(tile)
                     except FileNotFoundError:
                         self.existant_storage[tile.__hash__()] = False
-                        print("Marked " + tile.__str__() + "as non existant")
                         raise FileNotFoundError()
 
                     assert im is not None

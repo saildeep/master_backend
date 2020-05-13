@@ -29,7 +29,7 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
 
     def _get_init_params(self):
         locks = []
-        for i in range(128):
+        for i in range(8192*2):
             locks.append(Lock())
         return locks,self.zoom_offset,self.max_zoom_level
 
@@ -38,7 +38,7 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         r = HTTPTileFileResolver()
         r = FileTileCache(r,locks= file_locks )
 
-        r = MemoryTileCache(r, mem_size=1000, lock=True)  # small cache for th
+        r = MemoryTileCache(r, mem_size=1000, lock=False)  # small cache for th
         r = MemoryTileCache(r, lock=False)
         return r
 

@@ -11,7 +11,7 @@ class AbstractRasterDataProvider(abc.ABC):
 
     def __init__(self):
 
-        self.process_pool = Pool(processes=4,initializer=self._init_process,initargs=self._get_init_params())
+        self.process_pool = Pool(processes=8,initializer=self._init_process,initargs=self._get_init_params())
 
     def _init_process(self,* args):
         pass
