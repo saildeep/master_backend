@@ -1,7 +1,7 @@
 import math
 from source.lat_lng import LatLng
 from typing import Tuple
-
+import numpy as np
 
 class OSMTile():
 
@@ -28,6 +28,16 @@ def latlngToXY(latlng: LatLng, zoom: int) -> Tuple[float, float]:
     x = (lon_deg + 180.0) / 360.0 * n
     y = (1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n
     return x, y
+
+def latlngZoomToXYZoomNP(data:np.ndarray)->np.ndarray:
+    lat_deg = data[0,:]
+    lng_deg = data[1,:]
+    zoom = data[2,:].astype(int) # carefull, those get floored in this stage
+    lat_rad = lat_deg * (2 * math.pi / 360.0)
+    n = np.power(2,zoom)
+    x = (lng_deg + 180.0) / 360.0 * n
+    y = (1.0 - np.arcsinh(np.tan(lat_rad))/math.pi) / 2.0 *n
+    return np.stack([x,y,zoom],axis=0)
 
 
 def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256) -> Tuple[OSMTile, Tuple[float, float]]:

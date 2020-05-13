@@ -25,7 +25,7 @@ def projection(lat1, lng1, lat2, lng2):
     projection = ComplexLogProjection(c1, c2, math.pi / 6,
                                       smoothing_function_type=CosCutoffSmoothingFunction)
     projector = RasterProjector(projection, data_provider)
-    trange = TargetSectionDescription(-math.pi * 3, math.pi * 3, 3000, -math.pi, math.pi, 1000)
+    trange = TargetSectionDescription(-math.pi * 3, math.pi * 3, 6000, -math.pi, math.pi, 2000)
     d = projector.project(trange)
     pilim = Image.fromarray(d)
     img_io = BytesIO()

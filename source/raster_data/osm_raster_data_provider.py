@@ -14,7 +14,7 @@ from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTile
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
 
-    def __init__(self, tile_resolver: Optional[AbstractTileImageResolver] = None, zoom_offset: int = 4,
+    def __init__(self, zoom_offset: int = 10,
                  max_zoom_level: int = 19):
 
         info("Starting Raster data provider")
