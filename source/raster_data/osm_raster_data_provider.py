@@ -29,7 +29,7 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
 
     def _get_init_params(self):
         locks = []
-        for i in range(8192*2):
+        for i in range(4096):
             locks.append(Lock())
         return locks,self.zoom_offset,self.max_zoom_level
 
