@@ -1,4 +1,6 @@
-from typing import Optional, List
+import logging
+from logging import debug, info
+from typing import Optional
 
 import numpy as np
 
@@ -8,7 +10,6 @@ from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
 from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
 
-from multiprocessing import RLock
 
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
@@ -16,14 +17,14 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
     def __init__(self, tile_resolver: Optional[AbstractTileImageResolver] = None, zoom_offset: int = 4,
                  max_zoom_level: int = 19):
 
-
-
+        info("Starting Raster data provider")
         self.zoom_offset = zoom_offset
         self.max_zoom_level = max_zoom_level
         super(OSMRasterDataProvider, self).__init__()
 
     def _init_process(self, file_locks,zoom_offset,max_zoom_level):
-        print("Started process")
+        logging.basicConfig(level=logging.INFO)
+        info("Started process")
         global process_data
         process_data = (self.defaultTileResolver(),zoom_offset,max_zoom_level)
 
@@ -67,6 +68,7 @@ def _sample( positions_with_zoom: np.ndarray) -> np.ndarray:
                 assert tileExists(tile)
                 tile_image = data_source(tile)
             except FileNotFoundError:
+
                 zoom -= 1
 
         assert tile_image is not None

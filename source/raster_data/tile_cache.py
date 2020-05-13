@@ -13,7 +13,7 @@ from source.raster_data.tile_resolver import AbstractTileImageResolver
 
 from collections import OrderedDict
 
-from logging import debug
+from logging import debug, log, info
 
 
 class TileFilenameResolver:
@@ -85,11 +85,14 @@ class FileTileCache(AbstractTileImageResolver):
         if not os.path.isfile(path):
             image.save(temp_path, "PNG")
             try:
+                info("Creating " + path)
                 os.rename(temp_path,path)
             except OSError as err:
-                warnings.warn(err.__str__())
+                warnings.warn("Collision on moving " +temp_path + " -> " + path + ", cleaning up")
+                os.remove(temp_path)
+
         else:
-            debug("Tried to write " + path + " to cached but it already existed")
+            info("Tried to write " + path + " to cached but it already existed")
 
 
 class MemoryTileCache(AbstractTileImageResolver):

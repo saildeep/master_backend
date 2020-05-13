@@ -2,7 +2,7 @@ from io import BytesIO
 
 import math
 from flask import Flask, send_file
-
+import logging
 from source.complex_log_projection import ComplexLogProjection
 from source.lat_lng import LatLng
 from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
@@ -11,7 +11,7 @@ from source.smoothing_functions import CosCutoffSmoothingFunction
 from PIL import Image
 
 app = Flask(__name__)
-
+logging.basicConfig(level=logging.INFO)
 data_provider = OSMRasterDataProvider()
 
 
