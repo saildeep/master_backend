@@ -1,5 +1,4 @@
 import abc
-from typing import Tuple
 
 import numpy as np
 import threading
@@ -31,15 +30,15 @@ class AbstractRasterDataProvider(abc.ABC):
                     pz = pair[1]
                     i = pair[0]
 
-
-                except queue.Empty as e:
+                except queue.Empty:
                     return
 
                 r = self._sample(pz)
                 thread_results[i] = r
 
         threads = []
-        for tn in range(16):
+        num_threads = 4
+        for tn in range(num_threads):
             t = threading.Thread(target=_sampleMultithread, args=[q])
             t.start()
             threads.append(t)

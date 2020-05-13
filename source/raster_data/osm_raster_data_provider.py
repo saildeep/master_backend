@@ -4,14 +4,14 @@ import numpy as np
 
 from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
-from source.raster_data.tile_cache import FileTileCache,MemoryTileCache
+from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
 from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
 
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
 
-    def __init__(self, tile_resolver: Optional[AbstractTileImageResolver] = None, zoom_offset: int = 5,
+    def __init__(self, tile_resolver: Optional[AbstractTileImageResolver] = None, zoom_offset: int = 4,
                  max_zoom_level: int = 19):
         if tile_resolver is None:
             self.tile_resolver = self.defaultTileResolver()
@@ -26,8 +26,8 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         r = HTTPTileFileResolver()
         r = FileTileCache(r)
 
-        r = MemoryTileCache(r,mem_size=1000,lock=True) # small cache for th
-        r = MemoryTileCache(r,lock=False)
+        r = MemoryTileCache(r, mem_size=1000, lock=True)  # small cache for th
+        r = MemoryTileCache(r, lock=False)
         return r
 
     def _sample(self, positions_with_zoom: np.ndarray) -> np.ndarray:
