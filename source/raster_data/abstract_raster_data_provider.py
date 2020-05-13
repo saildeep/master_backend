@@ -2,7 +2,7 @@ import abc
 
 import numpy as np
 import threading
-
+import random
 import queue
 
 
@@ -18,7 +18,9 @@ class AbstractRasterDataProvider(abc.ABC):
         thread_results = [None] * num_chunks
 
         q = queue.Queue()
-        for i, p in enumerate(parts):
+        queue_data = list(enumerate(parts))
+        random.shuffle(queue_data)
+        for i, p in queue_data:
             q.put((i, p))
 
         def _sampleMultithread(qu):
@@ -37,7 +39,7 @@ class AbstractRasterDataProvider(abc.ABC):
                 thread_results[i] = r
 
         threads = []
-        num_threads = 4
+        num_threads = 32
         for tn in range(num_threads):
             t = threading.Thread(target=_sampleMultithread, args=[q])
             t.start()
