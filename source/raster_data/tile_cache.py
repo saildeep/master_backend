@@ -87,7 +87,7 @@ class FileTileCache(AbstractTileImageResolver):
             try:
                 os.rename(temp_path,path)
             except OSError as err:
-                warnings.warn(err)
+                warnings.warn(err.__str__())
         else:
             debug("Tried to write " + path + " to cached but it already existed")
 
