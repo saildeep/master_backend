@@ -8,7 +8,7 @@ class CosSinRasterDataProvider(AbstractRasterDataProvider):
     def getSampleFN(self):
         return _sample
 
-    def _get_init_params(self):
+    def get_init_params(self, opt_manager):
         return self.scale,
 
     def init_process(self, _scale):

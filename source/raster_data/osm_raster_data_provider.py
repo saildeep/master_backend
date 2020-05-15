@@ -7,13 +7,13 @@ import numpy as np
 from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider, getInitData
 from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
-from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists
+from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists, latlngZoomToXYZoomNP
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
 
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
 
-    def __init__(self, zoom_offset: int = 5,
+    def __init__(self, zoom_offset: int = 4,
                  max_zoom_level: int = 19):
         info("Starting Raster data provider")
         self.zoom_offset = zoom_offset
@@ -38,8 +38,8 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         r = HTTPTileFileResolver()
         r = FileTileCache(r)
 
-        r = MemoryTileCache(r, mem_size=1e5, lock=False, storage = dict)  # small cache for th
-        r = MemoryTileCache(r, lock=False, storage= {})
+        r = MemoryTileCache(r, mem_size=1e5, lock=False, storage=dict)  # small cache for th
+        r = MemoryTileCache(r, lock=False, storage={})
         return r
 
     def getSampleFN(self):
@@ -56,6 +56,7 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
     lat_array = positions_with_zoom[0, :]
     lng_array = positions_with_zoom[1, :]
     zoom_array = positions_with_zoom[2, :]
+
     out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
 
     for i in range(len(lat_array)):
@@ -72,7 +73,6 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
                 tile_image = data_source(tile)
 
             except FileNotFoundError:
-                print("Missing tile " + tile.__str__())
                 zoom -= 1
 
         assert tile_image is not None

@@ -5,9 +5,12 @@ from source.lat_lng import LatLng
 from source.raster_data.function_raster_data_provider import CosSinRasterDataProvider
 from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
-from source.smoothing_functions import DualCosSmoothingFunction
+from source.smoothing_functions import DualCosSmoothingFunction, CosCutoffSmoothingFunction
 from source.zoomable_projection import IdentityProjection
 
+from logging import basicConfig,INFO
+
+basicConfig(level=INFO)
 import math
 
 
@@ -40,6 +43,33 @@ class TestRasterProjector(unittest.TestCase):
         hoffeld = LatLng(48.735051, 9.181156)
         projection = ComplexLogProjection(konstanz, hoffeld, math.pi / 6,
                                           smoothing_function_type=DualCosSmoothingFunction)
+        projector = RasterProjector(projection, OSMRasterDataProvider())
+        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 500, -math.pi, math.pi, 250)
+        d = projector.project(trange)
+
+        import matplotlib.pyplot as plt
+        plt.imshow(d)
+        plt.show()
+
+
+    def test_project_image_osm_small(self):
+        konstanz = LatLng(47.711801, 9.084545)
+        sealive = LatLng(47.656846,9.179489) # sealive
+        projection = ComplexLogProjection(konstanz, sealive, math.pi / 6,
+                                          smoothing_function_type=CosCutoffSmoothingFunction)
+        projector = RasterProjector(projection, OSMRasterDataProvider())
+        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 500, -math.pi, math.pi, 250)
+        d = projector.project(trange)
+
+        import matplotlib.pyplot as plt
+        plt.imshow(d)
+        plt.show()
+
+    def test_project_image_osm_wide(self):
+        konstanz = LatLng(47.711801, 9.084545)
+        moscow = LatLng(55.712998,37.627815)
+        projection = ComplexLogProjection(konstanz, moscow, math.pi / 6,
+                                          smoothing_function_type=CosCutoffSmoothingFunction)
         projector = RasterProjector(projection, OSMRasterDataProvider())
         trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 500, -math.pi, math.pi, 250)
         d = projector.project(trange)

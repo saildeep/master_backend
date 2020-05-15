@@ -59,7 +59,7 @@ def latlngToTile(latlng: LatLng, zoom: int) -> OSMTile:
     return OSMTile(x_tile, y_tile, zoom)
 
 
-def tileExists(tile: OSMTile, max_zoom: int = 19) -> bool:
+def tileExists(tile: OSMTile, max_zoom: int = 100) -> bool:
     if tile.zoom < 0:
         return False
     if tile.zoom > max_zoom:

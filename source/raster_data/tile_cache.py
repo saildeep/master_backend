@@ -11,9 +11,8 @@ from contextlib import suppress
 from source.raster_data.tile_math import OSMTile
 from source.raster_data.tile_resolver import AbstractTileImageResolver
 
-from collections import OrderedDict
 
-from logging import debug,  info
+from logging import debug, info
 
 
 class TileFilenameResolver:
@@ -30,6 +29,9 @@ class TileFilenameResolver:
 
     def temp(self, tile: OSMTile, pid: int) -> str:
         return os.path.join(self.basedir, "{0}-{1}-{2}_pid-{3}.png".format(tile.x, tile.y, tile.zoom, pid))
+
+    def missing(self, tile):
+        return os.path.join(self.basedir, "{0}-{1}-{2}.missing".format(tile.x, tile.y, tile.zoom))
 
 
 class AbstractCacheRule(abc.ABC):
@@ -62,8 +64,16 @@ class FileTileCache(AbstractTileImageResolver):
             im = self.getCache(tile)
             if im is not None:
                 return im
-            im = self.fallback(tile)
-            assert im is not None
+            try:
+                im = self.fallback(tile)
+            except FileNotFoundError:
+                info("Writing " + tile.__str__() + " to missing files")
+                missing_filename = self.filename_resolver.missing(tile)
+                with open(missing_filename, 'a'):
+                    os.utime(missing_filename, None)
+            if im is None:
+                raise FileNotFoundError()
+
             self.putCache(tile, im)
             return im
 
@@ -75,6 +85,8 @@ class FileTileCache(AbstractTileImageResolver):
             im: Image.Image = Image.open(path, mode='r')
             return im.copy()
         else:
+            if os.path.isfile(self.filename_resolver.missing(tile)):
+                raise FileNotFoundError("Tile does not exist")
             return None
 
     def putCache(self, tile: OSMTile, image: Image.Image):
@@ -97,7 +109,7 @@ class FileTileCache(AbstractTileImageResolver):
 
 class MemoryTileCache(AbstractTileImageResolver):
 
-    def __init__(self, fallback: AbstractTileImageResolver, mem_size=500000, lock=False,storage={}):
+    def __init__(self, fallback: AbstractTileImageResolver, mem_size=500000, lock=False, storage={}):
 
         self.fallback = fallback
         self.storage = storage
