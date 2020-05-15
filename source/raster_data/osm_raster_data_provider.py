@@ -1,6 +1,5 @@
 import logging
-from logging import debug, info
-from typing import Optional
+from logging import info
 
 import numpy as np
 

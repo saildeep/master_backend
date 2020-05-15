@@ -13,7 +13,7 @@ from source.raster_data.tile_resolver import AbstractTileImageResolver
 
 from collections import OrderedDict
 
-from logging import debug, log, info
+from logging import debug,  info
 
 
 class TileFilenameResolver:
@@ -28,8 +28,8 @@ class TileFilenameResolver:
     def __call__(self, tile: OSMTile) -> str:
         return os.path.join(self.basedir, "{0}-{1}-{2}.png".format(tile.x, tile.y, tile.zoom))
 
-    def temp(self,tile:OSMTile, pid:int)->str:
-        return os.path.join(self.basedir, "{0}-{1}-{2}_pid-{3}.png".format(tile.x, tile.y, tile.zoom,pid))
+    def temp(self, tile: OSMTile, pid: int) -> str:
+        return os.path.join(self.basedir, "{0}-{1}-{2}_pid-{3}.png".format(tile.x, tile.y, tile.zoom, pid))
 
 
 class AbstractCacheRule(abc.ABC):
@@ -50,7 +50,7 @@ class AbstractCacheRule(abc.ABC):
 class FileTileCache(AbstractTileImageResolver):
 
     def __init__(self, fallback: AbstractTileImageResolver,
-                 filename_resolver: TileFilenameResolver = TileFilenameResolver(),locks = [suppress()]):
+                 filename_resolver: TileFilenameResolver = TileFilenameResolver(), locks=[suppress()]):
 
         self.fallback = fallback
         self.filename_resolver = filename_resolver
@@ -80,15 +80,15 @@ class FileTileCache(AbstractTileImageResolver):
     def putCache(self, tile: OSMTile, image: Image.Image):
 
         path = self.filename_resolver(tile)
-        temp_path = self.filename_resolver.temp(tile,os.getpid())
+        temp_path = self.filename_resolver.temp(tile, os.getpid())
 
         if not os.path.isfile(path):
             image.save(temp_path, "PNG")
             try:
                 info("Creating " + path)
-                os.rename(temp_path,path)
-            except OSError as err:
-                warnings.warn("Collision on moving " +temp_path + " -> " + path + ", cleaning up")
+                os.rename(temp_path, path)
+            except OSError:
+                warnings.warn("Collision on moving " + temp_path + " -> " + path + ", cleaning up")
                 os.remove(temp_path)
 
         else:
