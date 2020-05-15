@@ -2,7 +2,7 @@ import abc
 
 import numpy as np
 from source.raster_data import tile_math
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, Manager
 
 
 def getInitData():
@@ -17,8 +17,9 @@ def _runFN(fn, data):
 class AbstractRasterDataProvider(abc.ABC):
 
     def __init__(self):
+        manager = Manager()
         self.process_pool = Pool(processes=cpu_count(), initializer=self._init_process,
-                                 initargs=(self.init_process, self.get_init_params()))
+                                 initargs=(self.init_process, self.get_init_params(manager)))
 
     @abc.abstractmethod
     def init_process(self, *args):
@@ -28,7 +29,7 @@ class AbstractRasterDataProvider(abc.ABC):
         global init_data
         init_data = fn(*fn_args)
 
-    def get_init_params(self):
+    def get_init_params(self,manager:Manager):
         return []
 
     def getData(self, positions_with_zoom: np.ndarray) -> np.ndarray:

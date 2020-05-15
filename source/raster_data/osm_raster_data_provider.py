@@ -1,5 +1,6 @@
 import logging
 from logging import info
+from multiprocessing.dummy import Manager
 
 import numpy as np
 
@@ -19,22 +20,22 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         self.max_zoom_level = max_zoom_level
         super(OSMRasterDataProvider, self).__init__()
 
-    def init_process(self, file_locks, zoom_offset, max_zoom_level):
+    def init_process(self, file_locks, zoom_offset, max_zoom_level, memdict):
         logging.basicConfig(level=logging.INFO)
         info("Started process")
 
-        process_data = (self.defaultTileResolver(), zoom_offset, max_zoom_level)
+        process_data = (self.defaultTileResolver(memdict), zoom_offset, max_zoom_level)
         return process_data
 
-    def get_init_params(self):
-        return None, self.zoom_offset, self.max_zoom_level
+    def get_init_params(self, manager: Manager):
+        return None, self.zoom_offset, self.max_zoom_level, manager.dict()
 
-    def defaultTileResolver(self) -> AbstractTileImageResolver:
+    def defaultTileResolver(self, dict) -> AbstractTileImageResolver:
         r = HTTPTileFileResolver()
         r = FileTileCache(r)
 
-        r = MemoryTileCache(r, mem_size=1000, lock=False)  # small cache for th
-        r = MemoryTileCache(r, lock=False)
+        r = MemoryTileCache(r, mem_size=1e5, lock=False, storage = dict)  # small cache for th
+        r = MemoryTileCache(r, lock=False, storage= {})
         return r
 
     def getSampleFN(self):

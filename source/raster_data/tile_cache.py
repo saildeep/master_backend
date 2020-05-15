@@ -97,10 +97,10 @@ class FileTileCache(AbstractTileImageResolver):
 
 class MemoryTileCache(AbstractTileImageResolver):
 
-    def __init__(self, fallback: AbstractTileImageResolver, mem_size=500000, lock=False):
+    def __init__(self, fallback: AbstractTileImageResolver, mem_size=500000, lock=False,storage={}):
 
         self.fallback = fallback
-        self.storage = OrderedDict()
+        self.storage = storage
         self.mem_size = mem_size
         self.existant_storage = {}
 
