@@ -28,7 +28,11 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         return process_data
 
     def get_init_params(self, manager: Manager):
-        return None, self.zoom_offset, self.max_zoom_level, manager.dict()
+        d = {}
+        if manager is not None:
+            d = manager.dict()
+
+        return None, self.zoom_offset, self.max_zoom_level, d
 
     def defaultTileResolver(self, dict) -> AbstractTileImageResolver:
         r = HTTPTileFileResolver()
@@ -66,8 +70,9 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
                 tile = latlngToTile(latlng, zoom)
                 assert tileExists(tile)
                 tile_image = data_source(tile)
-            except FileNotFoundError:
 
+            except FileNotFoundError:
+                print("Missing tile " + tile.__str__())
                 zoom -= 1
 
         assert tile_image is not None

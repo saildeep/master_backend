@@ -9,17 +9,19 @@ def getInitData():
     global init_data
     return init_data
 
-def _runFN(fn, data):
-    global init_data
-    return fn(data, init_data)
 
 
 class AbstractRasterDataProvider(abc.ABC):
 
     def __init__(self):
         manager = Manager()
-        self.process_pool = Pool(processes=cpu_count(), initializer=self._init_process,
+        self.use_mp = False
+
+        if self.use_mp:
+            self.process_pool = Pool(processes=int(cpu_count()), initializer=self._init_process,
                                  initargs=(self.init_process, self.get_init_params(manager)))
+        else:
+            self._init_process(self.init_process,self.get_init_params(None))
 
     @abc.abstractmethod
     def init_process(self, *args):
@@ -34,22 +36,27 @@ class AbstractRasterDataProvider(abc.ABC):
 
     def getData(self, positions_with_zoom: np.ndarray) -> np.ndarray:
         assert len(positions_with_zoom.shape) == 2 and positions_with_zoom.shape[0] == 3
+        res = None
+        if self.use_mp:
+            min_chunk_size = 10
+            tiles = tile_math.latlngZoomToXYZoomNP(positions_with_zoom)
+            tiles_x = tiles[0, :].astype(int)
+            tiles_y = tiles[1, :].astype(int)
+            tiles_zoom = tiles[2, :].astype(int)
+            len_x = len(tiles_x)
+            permutation = sorted(range(len_x),key=lambda i: hash((tiles_x[i],tiles_y[i],tiles_zoom[i])))
 
-        min_chunk_size = 100
-        tiles = tile_math.latlngZoomToXYZoomNP(positions_with_zoom)
-        tiles_x = tiles[0, :].astype(int)
-        tiles_y = tiles[1, :].astype(int)
-        tiles_zoom = tiles[2, :].astype(int)
-
-        cuts = np.arange(1, positions_with_zoom.shape[1] - 2, min_chunk_size)
-        parts = np.split(positions_with_zoom, cuts, axis=1)
+            cuts = np.arange(1, positions_with_zoom.shape[1] - 2, min_chunk_size)
+            parts = np.split(positions_with_zoom, cuts, axis=1)
 
 
-        thread_results = self.process_pool.map(self.getSampleFN(), parts)
+            thread_results = self.process_pool.map(self.getSampleFN(), parts,10)
 
-        res = np.concatenate(thread_results, axis=1)
+            res = np.concatenate(thread_results, axis=1)
+        else:
+            sample_fn = self.getSampleFN()
+            res = sample_fn(positions_with_zoom)
 
-        # res = self._sample(positions_with_zoom)
         assert res.shape == positions_with_zoom.shape
         assert res.dtype == np.uint8
 
