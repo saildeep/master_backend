@@ -75,14 +75,15 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
             except FileNotFoundError:
                 zoom -= 1
 
-        assert tile_image is not None
+        colors = [0, 0, 0]
+        if tile_image is not None:
 
-        tile_pixel = latlngToTilePixel(latlng, zoom)
+            tile_pixel = latlngToTilePixel(latlng, zoom)
 
-        colors = tile_image.getpixel(tile_pixel)
-        if tile_image.mode == 'P':
-            colors = tile_image.palette.palette[colors * 3:colors * 3 + 3]
-            colors = np.frombuffer(colors, dtype=np.uint8, count=3)
+            colors = tile_image.getpixel(tile_pixel)
+            if tile_image.mode == 'P':
+                colors = tile_image.palette.palette[colors * 3:colors * 3 + 3]
+                colors = np.frombuffer(colors, dtype=np.uint8, count=3)
 
         out[:, i] = colors
 
