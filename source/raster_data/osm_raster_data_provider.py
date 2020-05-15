@@ -4,7 +4,7 @@ from logging import info
 import numpy as np
 
 from source.lat_lng import LatLng
-from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
+from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider, getInitData
 from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
 from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
@@ -12,20 +12,21 @@ from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTile
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
 
-    def __init__(self, zoom_offset: int = 6,
+    def __init__(self, zoom_offset: int = 5,
                  max_zoom_level: int = 19):
         info("Starting Raster data provider")
         self.zoom_offset = zoom_offset
         self.max_zoom_level = max_zoom_level
         super(OSMRasterDataProvider, self).__init__()
 
-    def _init_process(self, file_locks, zoom_offset, max_zoom_level):
+    def init_process(self, file_locks, zoom_offset, max_zoom_level):
         logging.basicConfig(level=logging.INFO)
         info("Started process")
-        global process_data
-        process_data = (self.defaultTileResolver(), zoom_offset, max_zoom_level)
 
-    def _get_init_params(self):
+        process_data = (self.defaultTileResolver(), zoom_offset, max_zoom_level)
+        return process_data
+
+    def get_init_params(self):
         return None, self.zoom_offset, self.max_zoom_level
 
     def defaultTileResolver(self) -> AbstractTileImageResolver:
@@ -36,15 +37,16 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         r = MemoryTileCache(r, lock=False)
         return r
 
-    def _getSampleFN(self):
+    def getSampleFN(self):
         return _sample
 
 
 def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
-    global process_data
-    data_source: AbstractTileImageResolver = process_data[0]
-    zoom_offset = process_data[1]
-    max_zoom = process_data[2]
+    init_data = getInitData()
+
+    data_source: AbstractTileImageResolver = init_data[0]
+    zoom_offset = init_data[1]
+    max_zoom = init_data[2]
 
     lat_array = positions_with_zoom[0, :]
     lng_array = positions_with_zoom[1, :]

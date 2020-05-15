@@ -5,13 +5,13 @@ from source.raster_data.abstract_raster_data_provider import AbstractRasterDataP
 
 class CosSinRasterDataProvider(AbstractRasterDataProvider):
 
-    def _getSampleFN(self):
+    def getSampleFN(self):
         return _sample
 
     def _get_init_params(self):
         return self.scale,
 
-    def _init_process(self, _scale):
+    def init_process(self, _scale):
         global scale
         scale = _scale
 
