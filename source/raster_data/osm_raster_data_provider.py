@@ -11,29 +11,25 @@ from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileEx
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
 
 
-
 class OSMRasterDataProvider(AbstractRasterDataProvider):
 
-    def __init__(self, zoom_offset: int = 10,
+    def __init__(self, zoom_offset: int = 6,
                  max_zoom_level: int = 19):
-
         info("Starting Raster data provider")
         self.zoom_offset = zoom_offset
         self.max_zoom_level = max_zoom_level
         super(OSMRasterDataProvider, self).__init__()
 
-    def _init_process(self, file_locks,zoom_offset,max_zoom_level):
+    def _init_process(self, file_locks, zoom_offset, max_zoom_level):
         logging.basicConfig(level=logging.INFO)
         info("Started process")
         global process_data
-        process_data = (self.defaultTileResolver(),zoom_offset,max_zoom_level)
+        process_data = (self.defaultTileResolver(), zoom_offset, max_zoom_level)
 
     def _get_init_params(self):
-
-        return None,self.zoom_offset,self.max_zoom_level
+        return None, self.zoom_offset, self.max_zoom_level
 
     def defaultTileResolver(self) -> AbstractTileImageResolver:
-
         r = HTTPTileFileResolver()
         r = FileTileCache(r)
 
@@ -44,9 +40,10 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
     def _getSampleFN(self):
         return _sample
 
-def _sample( positions_with_zoom: np.ndarray) -> np.ndarray:
+
+def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
     global process_data
-    data_source:AbstractTileImageResolver = process_data[0]
+    data_source: AbstractTileImageResolver = process_data[0]
     zoom_offset = process_data[1]
     max_zoom = process_data[2]
 

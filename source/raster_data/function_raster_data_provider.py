@@ -8,18 +8,24 @@ class CosSinRasterDataProvider(AbstractRasterDataProvider):
     def _getSampleFN(self):
         return _sample
 
+    def _get_init_params(self):
+        return self.scale,
+
+    def _init_process(self, _scale):
+        global scale
+        scale = _scale
+
     def __init__(self, scale: float = 1):
-        super(CosSinRasterDataProvider, self).__init__()
         self.scale = scale
+        super(CosSinRasterDataProvider, self).__init__()
 
 
-
-def _sample(self, positions_with_zoom: np.ndarray) -> np.ndarray:
+def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
+    global scale
     x = positions_with_zoom[0, :]
     y = positions_with_zoom[1, :]
     out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
-    out[0, :] = np.sin(self.scale * x) * 128 + 127
-    out[1, :] = np.cos(self.scale * y) * 128 + 127
+    out[0, :] = np.sin(scale * x) * 128 + 127
+    out[1, :] = np.cos(scale * y) * 128 + 127
 
     return out
-
