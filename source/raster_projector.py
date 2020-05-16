@@ -21,18 +21,12 @@ class RasterProjector():
         self.data_source = data_source
 
     def build_grid(self, trange: TargetSectionDescription) -> np.ndarray:
-        x_series = np.linspace(trange.xmin, trange.xmax, num=trange.xsteps)
-        y_series = np.linspace(trange.ymin, trange.ymax, num=trange.ysteps)
-
-        xy = np.zeros((2, trange.xsteps * trange.ysteps))
-        i = 0
-        for y in y_series:
-            for x in x_series:
-                xy[0, i] = x
-                xy[1, i] = y
-                i += 1
-
-        return xy
+        x_series = np.expand_dims(np.linspace(trange.xmin, trange.xmax, num=trange.xsteps),axis=0)
+        y_series = np.expand_dims(np.linspace(trange.ymin, trange.ymax, num=trange.ysteps),axis=1)
+        y_extended = (y_series * np.ones_like(x_series)).flatten()
+        x_extended = (x_series * np.ones_like(y_series)).flatten()
+        stacked = np.stack([x_extended,y_extended],axis=0)
+        return stacked
 
     def reshape_grid(self, data: np.ndarray, trange: TargetSectionDescription, channels):
         assert data.shape == (channels, trange.xsteps * trange.ysteps)
