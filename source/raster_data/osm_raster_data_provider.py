@@ -84,7 +84,8 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
             if tile_image.mode == 'P':
                 colors = tile_image.palette.palette[colors * 3:colors * 3 + 3]
                 colors = np.frombuffer(colors, dtype=np.uint8, count=3)
-
+        else:
+            logging.warn("Tile out of range " + tile.__str__())
         out[:, i] = colors
 
     return out

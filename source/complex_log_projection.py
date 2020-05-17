@@ -100,6 +100,8 @@ class ComplexLogProjection(ZoomableProjection):
         pixel_data = pixel_data.copy()
         pixel_data = self.smoothing_function.invert(pixel_data)
         size_per_pixel_azimuth_units = np.exp(np.abs(pixel_data[0,:]))/pixel_per_unit
-        size_per_pixel_latlng = (180/math.pi) * size_per_pixel_azimuth_units  / self.scale
-        zoom = np.log2(size_per_pixel_latlng)+6
+        size_per_pixel_latlng = 180.0 * size_per_pixel_azimuth_units  / self.scale
+
+        k = np.log2(size_per_pixel_latlng)
+        zoom =k
         return zoom

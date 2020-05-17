@@ -8,7 +8,7 @@ from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import DualCosSmoothingFunction, CosCutoffSmoothingFunction
 from source.zoomable_projection import IdentityProjection
 
-from logging import basicConfig,INFO
+from logging import basicConfig, INFO
 
 basicConfig(level=INFO)
 import math
@@ -51,10 +51,9 @@ class TestRasterProjector(unittest.TestCase):
         plt.imshow(d)
         plt.show()
 
-
     def test_project_image_osm_small(self):
         konstanz = LatLng(47.711801, 9.084545)
-        sealive = LatLng(47.656846,9.179489) # sealive
+        sealive = LatLng(47.656846, 9.179489)  # sealive
         projection = ComplexLogProjection(konstanz, sealive, math.pi / 6,
                                           smoothing_function_type=CosCutoffSmoothingFunction)
         projector = RasterProjector(projection, OSMRasterDataProvider())
@@ -67,7 +66,7 @@ class TestRasterProjector(unittest.TestCase):
 
     def test_project_image_osm_wide(self):
         konstanz = LatLng(47.711801, 9.084545)
-        moscow = LatLng(55.712998,37.627815)
+        moscow = LatLng(55.712998, 37.627815)
         projection = ComplexLogProjection(konstanz, moscow, math.pi / 6,
                                           smoothing_function_type=CosCutoffSmoothingFunction)
         projector = RasterProjector(projection, OSMRasterDataProvider())
@@ -78,4 +77,13 @@ class TestRasterProjector(unittest.TestCase):
         plt.imshow(d)
         plt.show()
 
-
+    def test_vis_zoomLevel(self):
+        projection1 = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
+        projection2 = ComplexLogProjection(LatLng(-10, -10), LatLng(10, 10), math.pi / 4)
+        projector = RasterProjector(projection1, OSMRasterDataProvider())
+        grid = projector.build_grid(TargetSectionDescription(-2, 2, 200, -2, 2, 200))
+        zoom = projection1.getZoomLevel(grid, 100)
+        import matplotlib.pyplot as plt
+        plt.imshow(zoom.reshape(200, 200))
+        plt.colorbar()
+        plt.show()

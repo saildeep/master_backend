@@ -57,9 +57,15 @@ class TestComplexLogProjection(unittest.TestCase):
         pass
 
     def testZoomLevel(self):
-        projection = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
-        data = np.array([[-1, -2, 1, 2], [0, 1, 1, 0]])
+        projection1 = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
+
+        projection2 = ComplexLogProjection(LatLng(-10, -10), LatLng(10, 10), math.pi / 4)
+        data = np.array([[-1, -2, 1, 2], [1, 1, 1, 1]])
         # expected = np.array([np.exp(1), np.exp(2), np.exp(1), np.exp(2)])
-        _ = projection.getZoomLevel(data,1)
+        r1 = projection1.getZoomLevel(data,1)
+        r2 = projection2.getZoomLevel(data,1)
         pass
         # TODO think about values
+
+
+
