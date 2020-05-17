@@ -37,7 +37,8 @@ class RasterProjector():
     def project(self, trange: TargetSectionDescription) -> np.ndarray:
         grid = self.build_grid(trange)
         inverted = self.projection.invert(grid)
-        zoom = np.expand_dims(self.projection.getZoomLevel(grid), axis=0)
+        pixel_per_unit = trange.xsteps / (trange.xmax - trange.xmin)
+        zoom = np.expand_dims(self.projection.getZoomLevel(grid,pixel_per_unit), axis=0)
         position_and_zoom = np.concatenate([inverted, zoom], axis=0)
         data = self.data_source.getData(position_and_zoom)
         data_reshaped = self.reshape_grid(data, trange, 3)

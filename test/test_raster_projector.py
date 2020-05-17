@@ -71,7 +71,7 @@ class TestRasterProjector(unittest.TestCase):
         projection = ComplexLogProjection(konstanz, moscow, math.pi / 6,
                                           smoothing_function_type=CosCutoffSmoothingFunction)
         projector = RasterProjector(projection, OSMRasterDataProvider())
-        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 500, -math.pi, math.pi, 250)
+        trange = TargetSectionDescription(-math.pi * 5, math.pi * 5, 500, -math.pi, math.pi, 250)
         d = projector.project(trange)
 
         import matplotlib.pyplot as plt

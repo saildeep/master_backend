@@ -13,7 +13,7 @@ class ZoomableProjection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def getZoomLevel(self, data: np.ndarray) -> np.ndarray:
+    def getZoomLevel(self, data: np.ndarray, pixel_per_unit: float) -> np.ndarray:
         pass
 
 
@@ -24,5 +24,5 @@ class IdentityProjection(ZoomableProjection):
     def invert(self, data: np.ndarray) -> np.ndarray:
         return data
 
-    def getZoomLevel(self, data: np.ndarray) -> np.ndarray:
+    def getZoomLevel(self, data: np.ndarray, pixel_per_unit: float) -> np.ndarray:
         return np.ones(data.shape[1])
