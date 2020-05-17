@@ -28,8 +28,9 @@ class ComplexLogProjection(ZoomableProjection):
         self.center2: np.ndarray = preprojection(np.array([[center2.lat], [center2.lng]]))
         self.smoothing_angle: float = smoothing_angle_radians
         self.midpoint: np.ndarray = midpoint(self.center1, self.center2)
-        self.scale: float = (1.0 / euclideanDist(self.center1, self.midpoint))[0]
 
+        self.scale: float = (1.0 / euclideanDist(self.center1, self.midpoint))[0]
+        self.center_point_distance = 1.0 / self.scale
         self.theta1: float = math.pi - vectorAngles(self.center1 - self.midpoint)[0]
         self.theta2: float = math.pi - vectorAngles(self.center2 - self.midpoint)[0]
 
@@ -95,13 +96,13 @@ class ComplexLogProjection(ZoomableProjection):
 
         return points
 
-    def getZoomLevel(self, pixel_data: np.ndarray, pixel_per_unit:float) -> np.ndarray:
+    def getZoomLevel(self, pixel_data: np.ndarray, pixel_per_unit: float) -> np.ndarray:
         assertMultipleVec2d(pixel_data)
         pixel_data = pixel_data.copy()
-        pixel_data = self.smoothing_function.invert(pixel_data)
-        size_per_pixel_azimuth_units = np.exp(np.abs(pixel_data[0,:]))/pixel_per_unit
-        size_per_pixel_latlng = 180.0 * size_per_pixel_azimuth_units  / self.scale
+        #pixel_data = self.smoothing_function.invert(pixel_data)
+        size_per_pixel_azimuth_units = np.exp(np.abs(pixel_data[0, :])) / pixel_per_unit
+        size_per_pixel_latlng = 180.0 * size_per_pixel_azimuth_units * self.center_point_distance
 
         k = np.log2(size_per_pixel_latlng)
-        zoom =k
-        return zoom
+        zoom = k+4
+        return np.maximum(zoom,np.zeros_like(zoom))

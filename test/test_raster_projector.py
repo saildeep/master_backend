@@ -70,7 +70,7 @@ class TestRasterProjector(unittest.TestCase):
         projection = ComplexLogProjection(konstanz, moscow, math.pi / 6,
                                           smoothing_function_type=CosCutoffSmoothingFunction)
         projector = RasterProjector(projection, OSMRasterDataProvider())
-        trange = TargetSectionDescription(-math.pi * 5, math.pi * 5, 500, -math.pi, math.pi, 250)
+        trange = TargetSectionDescription(-math.pi * 4, math.pi * 4, 2000, -math.pi, math.pi, 500)
         d = projector.project(trange)
 
         import matplotlib.pyplot as plt
@@ -81,9 +81,9 @@ class TestRasterProjector(unittest.TestCase):
         projection1 = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
         projection2 = ComplexLogProjection(LatLng(-10, -10), LatLng(10, 10), math.pi / 4)
         projector = RasterProjector(projection1, OSMRasterDataProvider())
-        grid = projector.build_grid(TargetSectionDescription(-2, 2, 200, -2, 2, 200))
+        grid = projector.build_grid(TargetSectionDescription(-4, 4, 400, -2, 2, 200))
         zoom = projection1.getZoomLevel(grid, 100)
         import matplotlib.pyplot as plt
-        plt.imshow(zoom.reshape(200, 200))
+        plt.imshow(zoom.reshape(200, 400))
         plt.colorbar()
         plt.show()
