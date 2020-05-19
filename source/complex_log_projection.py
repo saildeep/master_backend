@@ -106,6 +106,6 @@ class ComplexLogProjection(ZoomableProjection):
         size_per_pixel_latlng = 180.0 * size_per_pixel_azimuth_units * self.center_point_distance
 
         k = -np.log2(size_per_pixel_latlng)
-        zoom = k + 3
+        zoom = k + 2
         return zoom
 
