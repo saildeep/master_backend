@@ -57,6 +57,10 @@ def projection(lat1, lng1, lat2, lng2):
         additional_dict['ymin'] = -v
         additional_dict['ymax'] = v
 
+    #cutoff is provided as degree
+    if 'cutoff' in request.args:
+        v = abs(float(request.args['cutoff']) * math.pi / 180)
+        additional_dict['cutoff'] = v
 
 
     return do_projection(lat1, lng1, lat2, lng2, **additional_dict)
