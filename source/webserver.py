@@ -47,6 +47,17 @@ def projection(lat1, lng1, lat2, lng2):
     if 'height' in request.args:
         additional_dict['pixel_height'] = int(request.args['height'])
 
+    if 'sizex' in request.args:
+        v = float(request.args['sizex'])
+        additional_dict['xmin'] = -v
+        additional_dict['xmax'] = v
+
+    if 'sizey' in request.args:
+        v = float(request.args['sizey'])
+        additional_dict['ymin'] = -v
+        additional_dict['ymax'] = v
+
+
 
     return do_projection(lat1, lng1, lat2, lng2, **additional_dict)
 
