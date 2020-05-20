@@ -15,7 +15,7 @@ class AbstractRasterDataProvider(abc.ABC):
 
     def __init__(self):
         manager = Manager()
-        self.use_mp = True
+        self.use_mp = False
 
         if self.use_mp:
             self.process_pool = Pool(processes=int(cpu_count()), initializer=self._init_process,
