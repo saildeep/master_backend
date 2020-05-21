@@ -10,6 +10,8 @@ from source.zoomable_projection import IdentityProjection
 
 from logging import basicConfig, INFO
 
+from test.raster_data.dummy_resolver import dummy_resolver
+
 basicConfig(level=INFO)
 import math
 
@@ -43,7 +45,7 @@ class TestRasterProjector(unittest.TestCase):
         hoffeld = LatLng(48.735051, 9.181156)
         projection = ComplexLogProjection(konstanz, hoffeld, math.pi / 6,
                                           smoothing_function_type=DualCosSmoothingFunction)
-        projector = RasterProjector(projection, OSMRasterDataProvider())
+        projector = RasterProjector(projection, OSMRasterDataProvider(dummy_resolver))
         trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 500, -math.pi, math.pi, 250)
         d = projector.project(trange)
 
@@ -56,7 +58,7 @@ class TestRasterProjector(unittest.TestCase):
         sealive = LatLng(47.656846, 9.179489)  # sealive
         projection = ComplexLogProjection(konstanz, sealive, math.pi / 6,
                                           smoothing_function_type=CosCutoffSmoothingFunction)
-        projector = RasterProjector(projection, OSMRasterDataProvider())
+        projector = RasterProjector(projection, OSMRasterDataProvider(dummy_resolver))
         trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 500, -math.pi, math.pi, 250)
         d = projector.project(trange)
 
@@ -69,7 +71,7 @@ class TestRasterProjector(unittest.TestCase):
         moscow = LatLng(55.712998, 37.627815)
         projection = ComplexLogProjection(konstanz, moscow, math.pi / 6,
                                           smoothing_function_type=CosCutoffSmoothingFunction)
-        projector = RasterProjector(projection, OSMRasterDataProvider())
+        projector = RasterProjector(projection, OSMRasterDataProvider(dummy_resolver))
         trange = TargetSectionDescription(-math.pi * 4, math.pi * 4, 2000, -math.pi, math.pi, 500)
         d = projector.project(trange)
 
@@ -80,7 +82,7 @@ class TestRasterProjector(unittest.TestCase):
     def test_vis_zoomLevel(self):
         projection1 = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
         projection2 = ComplexLogProjection(LatLng(-10, -10), LatLng(10, 10), math.pi / 4)
-        projector = RasterProjector(projection1, OSMRasterDataProvider())
+        projector = RasterProjector(projection1, OSMRasterDataProvider(dummy_resolver))
         grid = projector.build_grid(TargetSectionDescription(-4, 4, 400, -2, 2, 200))
         zoom = projection1.getZoomLevel(grid, 100)
         import matplotlib.pyplot as plt

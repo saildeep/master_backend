@@ -7,13 +7,13 @@ from source.lat_lng import LatLng
 from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import DualCosSmoothingFunction, CosCutoffSmoothingFunction
-
+from test.raster_data import dummy_resolver
 
 
 class TestRasterPerformance(unittest.TestCase):
     konstanz = LatLng(47.711801, 9.084545)
     hoffeld = LatLng(48.735051, 9.181156)
-    data_provider =  OSMRasterDataProvider()
+    data_provider =  OSMRasterDataProvider(dummy_resolver.dummy_resolver)
 
     def test_profile(self):
         projection = ComplexLogProjection(self.konstanz, self.hoffeld, math.pi / 6,
