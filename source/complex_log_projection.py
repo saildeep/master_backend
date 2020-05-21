@@ -108,4 +108,3 @@ class ComplexLogProjection(ZoomableProjection):
         k = -np.log2(size_per_pixel_latlng)
         zoom = k + 2
         return zoom
-

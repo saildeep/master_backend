@@ -1,22 +1,21 @@
 import logging
 from logging import info
 from multiprocessing.dummy import Manager
-from typing import Optional
 
 import numpy as np
 
 from source.lat_lng import LatLng
-from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider, getInitData
-from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
-from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists, latlngZoomToXYZoomNP, OSMTile
-from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver, TileURLResolver
+from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
+
+from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists, OSMTile
+from source.raster_data.tile_resolver import AbstractTileImageResolver
 
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
     resolver: AbstractTileImageResolver
 
-    def __init__(self,  resolver,zoom_offset: int = 0,
-                 max_zoom_level: int = 19,  ):
+    def __init__(self, resolver, zoom_offset: int = 0,
+                 max_zoom_level: int = 19, ):
         info("Starting Raster data provider")
         self.zoom_offset = zoom_offset
         self.max_zoom_level = max_zoom_level
@@ -38,15 +37,11 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
 
         return None, self.zoom_offset, self.max_zoom_level, d
 
-
-
     def getSampleFN(self):
         return _sample
 
 
-def _sample(positions_with_zoom: np.ndarray,init_data) -> np.ndarray:
-
-
+def _sample(positions_with_zoom: np.ndarray, init_data) -> np.ndarray:
     data_source: AbstractTileImageResolver = init_data[0]
     zoom_offset = init_data[1]
     max_zoom = init_data[2]

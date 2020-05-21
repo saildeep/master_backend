@@ -1,3 +1,4 @@
+import json
 from io import BytesIO
 
 import math
@@ -101,4 +102,4 @@ def projection(lat1, lng1, lat2, lng2):
 @app.route('/test')
 def test():
     args = request.args
-    return "Hello World"
+    return json.dumps(args)

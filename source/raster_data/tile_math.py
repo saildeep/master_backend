@@ -1,6 +1,6 @@
 import math
 from source.lat_lng import LatLng
-from typing import Tuple, List, Optional
+from typing import List, Optional
 import numpy as np
 
 
@@ -63,8 +63,9 @@ def latlngZoomToXYZoomNP(data: np.ndarray) -> np.ndarray:
     return np.stack([x, y, zoom], axis=0)
 
 
-def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256, ref: Optional[List[float]] = None) -> List[
-    float]:
+def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256, ref: Optional[List[float]] = None) \
+        -> List[
+            float]:
     if ref is None:
         ref = [0, 0]
 

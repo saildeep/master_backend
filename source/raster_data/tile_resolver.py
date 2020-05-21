@@ -2,7 +2,6 @@ import abc
 from io import BytesIO
 from typing import Tuple
 import requests
-import requests.exceptions as httpex
 from PIL import Image
 from source.raster_data.tile_math import OSMTile
 

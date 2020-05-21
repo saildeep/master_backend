@@ -16,7 +16,7 @@ from logging import debug, info
 
 
 class TileFilenameResolver:
-    def __init__(self,folder="osm"):
+    def __init__(self, folder="osm"):
         self.basedir = os.path.join(tempfile.gettempdir(), folder)
         if os.path.isfile(self.basedir):
             raise EnvironmentError("File with name of basedir exists")
