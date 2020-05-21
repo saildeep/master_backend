@@ -8,7 +8,7 @@ import numpy as np
 from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider, getInitData
 from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
-from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists, latlngZoomToXYZoomNP
+from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists, latlngZoomToXYZoomNP, OSMTile
 from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver, TileURLResolver
 
 
@@ -46,7 +46,7 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
             url_format="https://atlas34.inf.uni-konstanz.de/mbtiles/data/openmaptiles_satellite_lowres/{2}/{0}/{1}.jpg")
         r = HTTPTileFileResolver(url)
         r = FileTileCache(r)
-        r = MemoryTileCache(r, lock=False, storage={})
+        r = MemoryTileCache(r)
         return r
 
     def getSampleFN(self):
@@ -62,20 +62,24 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
 
     lat_array = positions_with_zoom[0, :]
     lng_array = positions_with_zoom[1, :]
-    zoom_array = positions_with_zoom[2, :]
+    zoom_array = np.minimum(positions_with_zoom[2, :] + zoom_offset, max_zoom).astype(int)
+
+    # xyz = latlngZoomToXYZoomNP(positions_with_zoom)
+    # xyz_tile = xyz.astype(int)
 
     out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
-
+    tile = OSMTile(0, 0, 0)
+    latlng = LatLng(20, 29)
     for i in range(len(lat_array)):
         lat = lat_array[i]
         lng = lng_array[i]
-        latlng = LatLng(lat, lng)
-        zoom = min(int(zoom_array[i] + zoom_offset), max_zoom)
+        latlng = latlng.assign(lat, lng)
+        zoom = int(zoom_array[i])
         tile_image = None
         while tile_image is None and zoom >= 0:
             try:
 
-                tile = latlngToTile(latlng, zoom)
+                tile = latlngToTile(latlng, zoom, ref=tile)
                 assert tileExists(tile)
                 tile_image = data_source(tile)
 

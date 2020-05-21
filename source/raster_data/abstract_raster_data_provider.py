@@ -21,7 +21,8 @@ class AbstractRasterDataProvider(abc.ABC):
             self.process_pool = Pool(processes=int(cpu_count()), initializer=self._init_process,
                                  initargs=(self.init_process, self.get_init_params(manager)))
         else:
-            self._init_process(self.init_process,self.get_init_params(None))
+            self._init_data = self.init_process(*self.get_init_params(None))
+
 
     @abc.abstractmethod
     def init_process(self, *args):
@@ -48,6 +49,8 @@ class AbstractRasterDataProvider(abc.ABC):
             res = np.concatenate(thread_results, axis=1)
         else:
             sample_fn = self.getSampleFN()
+            global init_data
+            init_data = self._init_data
             res = sample_fn(positions_with_zoom)
 
         assert res.shape == positions_with_zoom.shape

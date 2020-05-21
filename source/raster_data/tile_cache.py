@@ -2,15 +2,15 @@ import abc
 import os
 import tempfile
 import warnings
+from collections import OrderedDict
 from threading import RLock, current_thread
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from PIL import Image
 from contextlib import suppress
 
 from source.raster_data.tile_math import OSMTile
 from source.raster_data.tile_resolver import AbstractTileImageResolver
-
 
 from logging import debug, info
 
@@ -59,7 +59,7 @@ class FileTileCache(AbstractTileImageResolver):
         self.locks = locks
 
     def __call__(self, tile: OSMTile) -> Image:
-        mylock = self.locks[tile.__hash__() % len(self.locks)]
+        mylock = self.locks[0]
         with mylock:
             im = self.getCache(tile)
             if im is not None:
@@ -108,16 +108,17 @@ class FileTileCache(AbstractTileImageResolver):
 
 
 class MemoryTileCache(AbstractTileImageResolver):
+    storage: Dict[OSMTile, Image.Image]
 
-    def __init__(self, fallback: AbstractTileImageResolver, mem_size=500000, lock=False, storage={}):
+    def __init__(self, fallback: AbstractTileImageResolver, mem_size=500000, lock=False):
 
         self.fallback = fallback
-        self.storage = storage
+        self.storage = OrderedDict()
         self.mem_size = mem_size
         self.existant_storage = {}
 
         self.locks = []
-        for i in range(8192):
+        for i in range(1):
             if lock:
                 self.locks.append(RLock())
             else:
@@ -125,24 +126,24 @@ class MemoryTileCache(AbstractTileImageResolver):
 
     def __call__(self, tile: OSMTile) -> Image:
 
-        mylock = self.locks[tile.__hash__() % len(self.locks)]
+        mylock = self.locks[0]
 
         with mylock:
             # assume this is atomic
-            im = self.storage.get(tile.__hash__(), None)
+            im = self.storage.get(tile, None)
             if im is not None:
                 return im
             else:
-                may_exist = self.existant_storage.get(tile.__hash__(), True)
+                may_exist = self.existant_storage.get(tile, True)
                 if may_exist:
                     try:
                         im = self.fallback(tile)
                     except FileNotFoundError:
-                        self.existant_storage[tile.__hash__()] = False
+                        self.existant_storage[tile.copy()] = False
                         raise FileNotFoundError()
 
                     assert im is not None
-                    self.storage[tile.__hash__()] = im
+                    self.storage[tile.copy()] = im
                     while len(self.storage) > self.mem_size:
                         self.storage.popitem(last=False)
                     return im
