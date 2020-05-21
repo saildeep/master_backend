@@ -1,7 +1,8 @@
 import abc
+from io import BytesIO
 from typing import Tuple
-from urllib.request import urlopen
-from urllib.error import HTTPError
+import requests
+import requests.exceptions as httpex
 from PIL import Image
 from source.raster_data.tile_math import OSMTile
 
@@ -41,12 +42,13 @@ class HTTPTileFileResolver(AbstractTileImageResolver):
             raise FileNotFoundError(tile.__str__())
 
         url = self.url_resolver(tile)
-        try:
-            im = Image.open(urlopen(url)).copy()
+
+        data = requests.get(url)
+        if data.status_code == 200:
+            im = Image.open(BytesIO(data.content)).copy()
             return im
-        except HTTPError as err:
-            if err.code == 404:
-                self.non_existing_tiles[tile.__str__()] = True
-                raise FileNotFoundError(tile.__str__())
-            else:
-                raise err
+        elif data.status_code == 404:
+            self.non_existing_tiles[tile.__str__()] = True
+            raise FileNotFoundError(tile.__str__())
+        else:
+            raise EnvironmentError("Status code " + str(data.status_code))

@@ -1,6 +1,7 @@
 import logging
 from logging import info
 from multiprocessing.dummy import Manager
+from typing import Optional
 
 import numpy as np
 
@@ -8,23 +9,29 @@ from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider, getInitData
 from source.raster_data.tile_cache import FileTileCache, MemoryTileCache
 from source.raster_data.tile_math import latlngToTile, latlngToTilePixel, tileExists, latlngZoomToXYZoomNP
-from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver
+from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTileFileResolver, TileURLResolver
 
 
 class OSMRasterDataProvider(AbstractRasterDataProvider):
+    resolver: AbstractTileImageResolver
 
     def __init__(self, zoom_offset: int = 0,
-                 max_zoom_level: int = 19):
+                 max_zoom_level: int = 19, resolver: Optional[AbstractTileImageResolver] = None):
         info("Starting Raster data provider")
         self.zoom_offset = zoom_offset
         self.max_zoom_level = max_zoom_level
+        if resolver is None:
+            self.resolver = self.defaultTileResolver()
+        else:
+            self.resolver = resolver
+
         super(OSMRasterDataProvider, self).__init__()
 
     def init_process(self, file_locks, zoom_offset, max_zoom_level, memdict):
         logging.basicConfig(level=logging.INFO)
         info("Started process")
 
-        process_data = (self.defaultTileResolver(memdict), zoom_offset, max_zoom_level)
+        process_data = (self.defaultTileResolver(), zoom_offset, max_zoom_level)
         return process_data
 
     def get_init_params(self, manager: Manager):
@@ -34,11 +41,11 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
 
         return None, self.zoom_offset, self.max_zoom_level, d
 
-    def defaultTileResolver(self, dict) -> AbstractTileImageResolver:
-        r = HTTPTileFileResolver()
+    def defaultTileResolver(self) -> AbstractTileImageResolver:
+        url = TileURLResolver(
+            url_format="https://atlas34.inf.uni-konstanz.de/mbtiles/data/openmaptiles_satellite_lowres/{2}/{0}/{1}.jpg")
+        r = HTTPTileFileResolver(url)
         r = FileTileCache(r)
-
-        r = MemoryTileCache(r, mem_size=1e5, lock=False, storage=dict)  # small cache for th
         r = MemoryTileCache(r, lock=False, storage={})
         return r
 
@@ -85,8 +92,8 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
                 colors = tile_image.palette.palette[colors * 3:colors * 3 + 3]
                 colors = np.frombuffer(colors, dtype=np.uint8, count=3)
         else:
-           logging.warn("Zoom level " + str(zoom))
-           # logging.warn("Tile out of range " + tile.__str__())
+            logging.warn("Zoom level " + str(zoom))
+            # logging.warn("Tile out of range " + tile.__str__())
         out[:, i] = colors
 
     return out
