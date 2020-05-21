@@ -15,15 +15,12 @@ from source.raster_data.tile_resolver import AbstractTileImageResolver, HTTPTile
 class OSMRasterDataProvider(AbstractRasterDataProvider):
     resolver: AbstractTileImageResolver
 
-    def __init__(self, zoom_offset: int = 0,
-                 max_zoom_level: int = 19, resolver: Optional[AbstractTileImageResolver] = None):
+    def __init__(self,  resolver,zoom_offset: int = 0,
+                 max_zoom_level: int = 19,  ):
         info("Starting Raster data provider")
         self.zoom_offset = zoom_offset
         self.max_zoom_level = max_zoom_level
-        if resolver is None:
-            self.resolver = self.defaultTileResolver()
-        else:
-            self.resolver = resolver
+        self.resolver = resolver
 
         super(OSMRasterDataProvider, self).__init__()
 
@@ -31,7 +28,7 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
         logging.basicConfig(level=logging.INFO)
         info("Started process")
 
-        process_data = (self.defaultTileResolver(), zoom_offset, max_zoom_level)
+        process_data = (self.resolver, zoom_offset, max_zoom_level)
         return process_data
 
     def get_init_params(self, manager: Manager):
@@ -41,20 +38,14 @@ class OSMRasterDataProvider(AbstractRasterDataProvider):
 
         return None, self.zoom_offset, self.max_zoom_level, d
 
-    def defaultTileResolver(self) -> AbstractTileImageResolver:
-        url = TileURLResolver(
-            url_format="https://atlas34.inf.uni-konstanz.de/mbtiles/data/openmaptiles_satellite_lowres/{2}/{0}/{1}.jpg")
-        r = HTTPTileFileResolver(url)
-        r = FileTileCache(r)
-        r = MemoryTileCache(r)
-        return r
+
 
     def getSampleFN(self):
         return _sample
 
 
-def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
-    init_data = getInitData()
+def _sample(positions_with_zoom: np.ndarray,init_data) -> np.ndarray:
+
 
     data_source: AbstractTileImageResolver = init_data[0]
     zoom_offset = init_data[1]

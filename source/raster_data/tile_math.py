@@ -4,19 +4,21 @@ from typing import Tuple, List, Optional
 import numpy as np
 
 
-class OSMTile():
+class OSMTile:
+    x: int
+    y: int
+    zoom: int
+    _hash: int
 
     def __init__(self, x: int, y: int, zoom: int):
-        if __debug__:
-            assert isinstance(x, int) and isinstance(y, int) and isinstance(zoom, int)
-
-        self.x = x
-        self.y = y
-        self.zoom = zoom
+        self.assign(x, y, zoom)
 
     def __hash__(self):
         # should be distributed somehow
-        return 4 * self.zoom + 2 * self.zoom * self.x + self.y
+        return self._hash
+
+    def _calc_hash(self):
+        self._hash = 4 * self.zoom + 2 * self.zoom * self.x + self.y
 
     def __str__(self):
         return str(self.x) + '-' + str(self.y) + "-" + str(self.zoom)
@@ -30,6 +32,7 @@ class OSMTile():
         self.x = x
         self.y = y
         self.zoom = zoom
+        self._calc_hash()
         return self
 
     def copy(self):

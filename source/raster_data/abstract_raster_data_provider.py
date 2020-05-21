@@ -15,13 +15,8 @@ class AbstractRasterDataProvider(abc.ABC):
 
     def __init__(self):
         manager = Manager()
-        self.use_mp = False
 
-        if self.use_mp:
-            self.process_pool = Pool(processes=int(cpu_count()), initializer=self._init_process,
-                                 initargs=(self.init_process, self.get_init_params(manager)))
-        else:
-            self._init_data = self.init_process(*self.get_init_params(None))
+        self._init_data = self.init_process(*self.get_init_params(None))
 
 
     @abc.abstractmethod
@@ -38,20 +33,10 @@ class AbstractRasterDataProvider(abc.ABC):
     def getData(self, positions_with_zoom: np.ndarray) -> np.ndarray:
         assert len(positions_with_zoom.shape) == 2 and positions_with_zoom.shape[0] == 3
         res = None
-        if self.use_mp:
-            min_chunk_size = 1000
 
-            cuts = np.arange(1, positions_with_zoom.shape[1] - 2, min_chunk_size)
-            parts = np.split(positions_with_zoom, cuts, axis=1)
+        sample_fn = self.getSampleFN()
 
-            thread_results = self.process_pool.map(self.getSampleFN(), parts,10)
-
-            res = np.concatenate(thread_results, axis=1)
-        else:
-            sample_fn = self.getSampleFN()
-            global init_data
-            init_data = self._init_data
-            res = sample_fn(positions_with_zoom)
+        res = sample_fn(positions_with_zoom,self._init_data)
 
         assert res.shape == positions_with_zoom.shape
         assert res.dtype == np.uint8
