@@ -17,7 +17,8 @@ from logging import debug, info
 
 class TileFilenameResolver:
     def __init__(self, folder="osm"):
-        self.basedir = os.path.join(tempfile.gettempdir(), folder)
+        self.prefix = folder
+        self.basedir = os.path.join(tempfile.gettempdir(), "tilecache")
         if os.path.isfile(self.basedir):
             raise EnvironmentError("File with name of basedir exists")
 
@@ -25,13 +26,14 @@ class TileFilenameResolver:
             os.mkdir(self.basedir)
 
     def __call__(self, tile: OSMTile) -> str:
-        return os.path.join(self.basedir, "{0}-{1}-{2}.png".format(tile.x, tile.y, tile.zoom))
+        return os.path.join(self.basedir, self.prefix + "_{0}-{1}-{2}.png".format(tile.x, tile.y, tile.zoom))
 
     def temp(self, tile: OSMTile, pid: int) -> str:
-        return os.path.join(self.basedir, "{0}-{1}-{2}_pid-{3}.png".format(tile.x, tile.y, tile.zoom, pid))
+        return os.path.join(self.basedir,
+                            self.prefix + "_{0}-{1}-{2}_pid-{3}.png".format(tile.x, tile.y, tile.zoom, pid))
 
     def missing(self, tile):
-        return os.path.join(self.basedir, "{0}-{1}-{2}.missing".format(tile.x, tile.y, tile.zoom))
+        return os.path.join(self.basedir, self.prefix + "_{0}-{1}-{2}.missing".format(tile.x, tile.y, tile.zoom))
 
 
 class AbstractCacheRule(abc.ABC):

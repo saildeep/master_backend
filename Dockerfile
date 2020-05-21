@@ -3,6 +3,7 @@ RUN useradd -ms /bin/bash admin
 RUN mkdir -p /app
 COPY . /app
 WORKDIR /app
+RUN pip install --upgrade pip
 RUN pip install uwsgi
 RUN pip install -r requirements.txt
 
