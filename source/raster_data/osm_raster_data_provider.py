@@ -70,6 +70,7 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
     out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
     tile = OSMTile(0, 0, 0)
     latlng = LatLng(20, 29)
+    tile_pixel = [0, 0]
     for i in range(len(lat_array)):
         lat = lat_array[i]
         lng = lng_array[i]
@@ -89,9 +90,10 @@ def _sample(positions_with_zoom: np.ndarray) -> np.ndarray:
         colors = [0, 0, 0]
         if tile_image is not None:
 
-            tile_pixel = latlngToTilePixel(latlng, zoom)
+            tile_pixel = latlngToTilePixel(latlng, zoom, ref=tile_pixel)
 
-            colors = tile_image.getpixel(tile_pixel)
+            fucking_slow_tuple = (tile_pixel[0], tile_pixel[1])
+            colors = tile_image.getpixel(fucking_slow_tuple)
             if tile_image.mode == 'P':
                 colors = tile_image.palette.palette[colors * 3:colors * 3 + 3]
                 colors = np.frombuffer(colors, dtype=np.uint8, count=3)

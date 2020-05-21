@@ -15,7 +15,8 @@ class OSMTile():
         self.zoom = zoom
 
     def __hash__(self):
-        return 4 ** self.zoom + 2 ** self.zoom * self.x + self.y
+        # should be distributed somehow
+        return 4 * self.zoom + 2 * self.zoom * self.x + self.y
 
     def __str__(self):
         return str(self.x) + '-' + str(self.y) + "-" + str(self.zoom)
@@ -35,20 +36,17 @@ class OSMTile():
         return OSMTile(self.x, self.y, self.zoom)
 
 
-def latlngToXY(latlng: LatLng, zoom: int, ref: Optional[List[float]] = None) -> List[float]:
+def latlngToXY(latlng: LatLng, zoom: int, ref: List[float]) -> List[float]:
     lat_deg = latlng.lat
     lon_deg = latlng.lng
-    lat_rad = math.radians(lat_deg)
+    lat_rad = lat_deg * math.pi / 180
     n = 2.0 ** zoom
     x = (lon_deg + 180.0) / 360.0 * n
     y = (1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n
 
-    if ref is None:
-        return [x, y]
-    else:
-        ref[0] = x
-        ref[1] = y
-        return ref
+    ref[0] = x
+    ref[1] = y
+    return ref
 
 
 def latlngZoomToXYZoomNP(data: np.ndarray) -> np.ndarray:
@@ -62,14 +60,18 @@ def latlngZoomToXYZoomNP(data: np.ndarray) -> np.ndarray:
     return np.stack([x, y, zoom], axis=0)
 
 
-def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256) -> Tuple[OSMTile, Tuple[float, float]]:
-    x, y = latlngToXY(latlng, zoom)
-    x -= int(x)
-    y -= int(y)
+def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256, ref: Optional[List[float]] = None) -> List[
+    float]:
+    if ref is None:
+        ref = [0, 0]
 
-    x = min(int(x * tile_size), tile_size - 1)
-    y = min(int(y * tile_size), tile_size - 1)
-    return x, y
+    ref = latlngToXY(latlng, zoom, ref=ref)
+    ref[0] -= int(ref[0])
+    ref[1] -= int(ref[1])
+
+    ref[0] = min(int(ref[0] * tile_size), tile_size - 1)
+    ref[1] = min(int(ref[1] * tile_size), tile_size - 1)
+    return ref
 
 
 latlongtotile_cache = [0, 0]
