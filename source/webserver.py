@@ -1,5 +1,6 @@
 import json
 from io import BytesIO
+from typing import Tuple, Dict
 
 import math
 from flask import Flask, send_file, request, abort, Response
@@ -18,22 +19,22 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def get_providers():
-    providers = {}
+def get_providers() -> Dict[str, AbstractRasterDataProvider]:
+    _providers: Dict[str, AbstractRasterDataProvider] = {}
 
     r = HTTPTileFileResolver(TileURLResolver(
         url_format="https://a.tile.openstreetmap.de/{2}/{0}/{1}.png"))
     r = FileTileCache(r, TileFilenameResolver("osm"))
     r = MemoryTileCache(r, mem_size=100000)
-    providers['default'] = OSMRasterDataProvider(r, max_zoom_level=19)
-    providers['osm'] = providers['default']
+    _providers['default'] = OSMRasterDataProvider(r, max_zoom_level=19)
+    _providers['osm'] = _providers['default']
 
     r = HTTPTileFileResolver(TileURLResolver(
         url_format="https://atlas34.inf.uni-konstanz.de/mbtiles/data/openmaptiles_satellite_lowres/{2}/{0}/{1}.jpg"))
     r = FileTileCache(r, TileFilenameResolver("satellite_lowres"))
     r = MemoryTileCache(r, mem_size=100000)
-    providers['satellite'] = OSMRasterDataProvider(r, max_zoom_level=12)
-    return providers
+    _providers['satellite'] = OSMRasterDataProvider(r, max_zoom_level=12)
+    return _providers
 
 
 providers = get_providers()
@@ -64,39 +65,69 @@ def do_projection(lat1, lng1, lat2, lng2, data_source: AbstractRasterDataProvide
     "/projection/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>.png")
 def projection(lat1, lng1, lat2, lng2):
+    additional_dict = parse_request_args(request.args)
+    data_source = parse_source(request.args)
+    return do_projection(lat1, lng1, lat2, lng2, data_source, **additional_dict)
+
+
+@app.route(
+    "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/<int:zoom>/<int:x>/<int:y>.png")
+def tile(lat1, lng1, lat2, lng2, zoom, x, y):
+    top_level_range = 1  # goes from -top_level_range to top_level_range
+    zoom_size = 2 ** zoom
+    tile_width = top_level_range * 2 / zoom_size
+
+    start_x = -top_level_range
+    start_y = -top_level_range
+
+    xmin = x * tile_width + start_x
+    ymin = y * tile_width + start_y
+    xmax = xmin + tile_width
+    ymax = ymin + tile_width
+    logging.info("Rendering tile with ({0},{1}) to ({2},{3})".format(xmin, ymin, xmax, ymax))
+    source = parse_source(request.args)
+
+    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax)
+
+
+def parse_request_args(args: request) -> Dict:
     additional_dict = {}
-    if 'width' in request.args:
-        additional_dict['pixel_width'] = int(request.args['width'])
+    if 'width' in args:
+        additional_dict['pixel_width'] = int(args['width'])
 
-    if 'height' in request.args:
-        additional_dict['pixel_height'] = int(request.args['height'])
+    if 'height' in args:
+        additional_dict['pixel_height'] = int(args['height'])
 
-    if 'sizex' in request.args:
-        v = float(request.args['sizex'])
+    if 'sizex' in args:
+        v = float(args['sizex'])
         additional_dict['xmin'] = -v
         additional_dict['xmax'] = v
 
-    if 'sizey' in request.args:
-        v = float(request.args['sizey'])
+    if 'sizey' in args:
+        v = float(args['sizey'])
         additional_dict['ymin'] = -v
         additional_dict['ymax'] = v
 
     # cutoff is provided as degree
-    if 'cutoff' in request.args:
-        v = abs(float(request.args['cutoff']) * math.pi / 180)
+    if 'cutoff' in args:
+        v = abs(float(args['cutoff']) * math.pi / 180)
         additional_dict['cutoff'] = v
 
+    return additional_dict
+
+
+def parse_source(args) -> AbstractRasterDataProvider:
     data_source = providers.get("default", None)
-    if 'source' in request.args:
-        v = request.args['source']
+    if 'source' in args:
+        v = args['source']
         if v not in providers:
             return abort(Response("invalid source"))
         data_source = providers.get(v, None)
 
     if data_source is None:
         abort(Response("No data source set"))
-
-    return do_projection(lat1, lng1, lat2, lng2, data_source, **additional_dict)
+    return data_source
 
 
 @app.route('/test')
