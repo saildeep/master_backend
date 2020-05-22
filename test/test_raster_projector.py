@@ -89,5 +89,5 @@ class TestRasterProjector(unittest.TestCase):
         plt.imshow(zoom.reshape(200, 400))
         plt.colorbar()
         plt.show()
-        plt.scatter(range(400), zoom.reshape(200, 400)[100, :])
+        plt.scatter(range(400), zoom.reshape(200, 400)[10, :])
         plt.show()
