@@ -34,6 +34,12 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     r = FileTileCache(r, TileFilenameResolver("satellite_lowres"))
     r = MemoryTileCache(r, mem_size=100000)
     _providers['satellite'] = OSMRasterDataProvider(r, max_zoom_level=12)
+
+    r = HTTPTileFileResolver(TileURLResolver(
+        url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b_PQM3IiTstBoCujwPZOIA"))
+    r = FileTileCache(r, TileFilenameResolver("mapbox"))
+    r = MemoryTileCache(r, mem_size=100000)
+    _providers['mapbox'] = OSMRasterDataProvider(r, max_zoom_level=19)
     return _providers
 
 
