@@ -50,8 +50,7 @@ def _sample(positions_with_zoom: np.ndarray, init_data) -> np.ndarray:
     lng_array = positions_with_zoom[1, :]
     zoom_array = np.minimum(positions_with_zoom[2, :] + zoom_offset, max_zoom).astype(int)
 
-    # xyz = latlngZoomToXYZoomNP(positions_with_zoom)
-    # xyz_tile = xyz.astype(int)
+
 
     out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
     tile = OSMTile(0, 0, 0)
