@@ -80,7 +80,7 @@ def projection(lat1, lng1, lat2, lng2):
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/<int:zoom>/<int:x>/<int:y>.png")
 def tile(lat1, lng1, lat2, lng2, zoom, x, y):
-    top_level_range = 1  # goes from -top_level_range to top_level_range
+    top_level_range = 2 * math.pi  # goes from -top_level_range to top_level_range
     zoom_size = 2 ** zoom
     tile_width = top_level_range * 2 / zoom_size
 
