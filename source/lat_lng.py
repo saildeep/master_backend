@@ -7,3 +7,6 @@ class LatLng():
         self.lat = lat
         self.lng = lng
         return self
+
+    def __str__(self):
+        return "LatLng:(" + str(self.lat) + "," + str(self.lng) + ")"

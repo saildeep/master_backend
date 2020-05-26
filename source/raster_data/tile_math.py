@@ -1,3 +1,5 @@
+from logging import error
+
 import math
 from source.lat_lng import LatLng
 from typing import List, Optional
@@ -78,17 +80,19 @@ def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256, ref: Opti
     return ref
 
 
-latlongtotile_cache = [0, 0]
-
-
 def latlngToTile(latlng: LatLng, zoom: int, ref: Optional[OSMTile] = None) -> OSMTile:
     if ref is None:
         ref = OSMTile(0, 0, 0)
 
-    _data = latlngToXY(latlng, zoom, ref=latlongtotile_cache)
+    _data = latlngToXY(latlng, zoom, ref=[0, 0])  # slow but reliable
     x_tile = int(_data[0])
     y_tile = int(_data[1])
-    return ref.assign(x_tile, y_tile, zoom)
+    ref.assign(x_tile, y_tile, zoom)
+    if __debug__:
+        if not tileExists(ref, 1000000):
+            error("Created invalid tile from " + str(latlng) + " with x = " + str(_data[0]) + ", " + str(
+                _data[1]) + "z = " + str(zoom))
+    return ref
 
 
 def tileExists(tile: OSMTile, max_zoom: int = 100) -> bool:

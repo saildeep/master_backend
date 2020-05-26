@@ -99,7 +99,7 @@ class ComplexLogProjection(ZoomableProjection):
     def getZoomLevel(self, pixel_data: np.ndarray, pixel_per_unit: float) -> np.ndarray:
         assertMultipleVec2d(pixel_data)
         pixel_data = pixel_data.copy()
-        #pixel_data = self.smoothing_function.invert(pixel_data)
+        # pixel_data = self.smoothing_function.invert(pixel_data)
         size_per_pixel_azimuth_units = np.exp(
             -np.abs(pixel_data[0, :])) / pixel_per_unit  # exp in here is the problem. Should be 1/exp or similar
 

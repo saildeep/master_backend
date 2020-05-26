@@ -1,5 +1,5 @@
 import logging
-from logging import info
+from logging import info, error
 from multiprocessing.dummy import Manager
 
 import numpy as np
@@ -50,8 +50,6 @@ def _sample(positions_with_zoom: np.ndarray, init_data) -> np.ndarray:
     lng_array = positions_with_zoom[1, :]
     zoom_array = np.minimum(positions_with_zoom[2, :] + zoom_offset, max_zoom).astype(int)
 
-
-
     out = np.zeros_like(positions_with_zoom, dtype=np.uint8)
     tile = OSMTile(0, 0, 0)
     latlng = LatLng(20, 29)
@@ -66,10 +64,12 @@ def _sample(positions_with_zoom: np.ndarray, init_data) -> np.ndarray:
             try:
 
                 tile = latlngToTile(latlng, zoom, ref=tile)
-                assert tileExists(tile)
+                if not tileExists(tile, max_zoom=max_zoom):
+                    error("Querying invalid tile " + tile.__str__())
                 tile_image = data_source(tile)
 
             except FileNotFoundError:
+                info("Could not find " + tile.__str__())
                 zoom -= 1
 
         colors = [0, 0, 0]

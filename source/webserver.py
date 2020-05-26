@@ -1,6 +1,6 @@
 import json
 from io import BytesIO
-from typing import Tuple, Dict
+from typing import Dict
 
 import math
 from flask import Flask, send_file, request, abort, Response
@@ -14,6 +14,7 @@ from source.smoothing_functions import CosCutoffSmoothingFunction
 from source.raster_data.tile_resolver import HTTPTileFileResolver, TileURLResolver
 from source.raster_data.tile_cache import FileTileCache, TileFilenameResolver, MemoryTileCache
 from PIL import Image
+from source.flat_tiling import FlatTiling
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +37,9 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     _providers['satellite'] = OSMRasterDataProvider(r, max_zoom_level=12)
 
     r = HTTPTileFileResolver(TileURLResolver(
-        url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b_PQM3IiTstBoCujwPZOIA"))
+        url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?"
+                   + "access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b"
+                   + "_PQM3IiTstBoCujwPZOIA"))
     r = FileTileCache(r, TileFilenameResolver("mapbox"))
     r = MemoryTileCache(r, mem_size=100000)
     _providers['mapbox'] = OSMRasterDataProvider(r, max_zoom_level=30)
@@ -81,16 +84,9 @@ def projection(lat1, lng1, lat2, lng2):
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/<int:zoom>/<int:x>/<int:y>.png")
 def tile(lat1, lng1, lat2, lng2, zoom, x, y):
     top_level_range = 2 * math.pi  # goes from -top_level_range to top_level_range
-    zoom_size = 2 ** zoom
-    tile_width = top_level_range * 2 / zoom_size
+    tiling = FlatTiling(top_level_range)
+    xmin, ymin, xmax, ymax = tiling(x, y, zoom)
 
-    start_x = -top_level_range
-    start_y = -top_level_range
-
-    xmin = x * tile_width + start_x
-    ymin = y * tile_width + start_y
-    xmax = xmin + tile_width
-    ymax = ymin + tile_width
     logging.info("Rendering tile with ({0},{1}) to ({2},{3})".format(xmin, ymin, xmax, ymax))
     source = parse_source(request.args)
 
