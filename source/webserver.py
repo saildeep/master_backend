@@ -3,7 +3,7 @@ from io import BytesIO
 from typing import Dict
 
 import math
-from flask import Flask, send_file, request, abort, Response
+from flask import Flask, send_file, request, abort, Response, jsonify
 import logging
 from source.complex_log_projection import ComplexLogProjection
 from source.lat_lng import LatLng
@@ -15,6 +15,7 @@ from source.raster_data.tile_resolver import HTTPTileFileResolver, TileURLResolv
 from source.raster_data.tile_cache import FileTileCache, TileFilenameResolver, MemoryTileCache
 from PIL import Image
 from source.flat_tiling import FlatTiling
+import numpy as np
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -79,18 +80,45 @@ def projection(lat1, lng1, lat2, lng2):
     return do_projection(lat1, lng1, lat2, lng2, data_source, **additional_dict)
 
 
+tiling = FlatTiling(2 * math.pi)
+
+
 @app.route(
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/<int:zoom>/<int:x>/<int:y>.png")
 def tile(lat1, lng1, lat2, lng2, zoom, x, y):
-    top_level_range = 2 * math.pi  # goes from -top_level_range to top_level_range
-    tiling = FlatTiling(top_level_range)
     xmin, ymin, xmax, ymax = tiling(x, y, zoom)
 
     logging.info("Rendering tile with ({0},{1}) to ({2},{3})".format(xmin, ymin, xmax, ymax))
     source = parse_source(request.args)
 
     return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax)
+
+
+@app.route(
+    "/resolve/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>" +
+    "/clickLat/<float(signed=True):clickLat>/clickLng/<float(signed=True):clickLng>.json")
+def resolve(lat1, lng1, lat2, lng2, clickLat, clickLng):
+    proj = ComplexLogProjection(LatLng(lat1, lng1), LatLng(lat2, lng2), math.pi / 6,
+                                smoothing_function_type=CosCutoffSmoothingFunction)
+
+    x, y = tiling.from_leaflet_LatLng(LatLng(clickLat, clickLng))
+
+    xy = np.array([[x], [y]])
+    latlng_data = proj.invert(xy)
+
+    assert latlng_data.shape == (2, 1)
+    ret_data = {"lat": latlng_data[0, 0], "lng": latlng_data[1, 0]}
+    response = app.response_class(
+        response=json.dumps(ret_data),
+        status=200,
+        mimetype='application/json'
+    )
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 
 def parse_request_args(args: request) -> Dict:

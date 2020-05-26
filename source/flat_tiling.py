@@ -1,10 +1,16 @@
 """
 Used for mapping the projection to a tiled space and back
+Also has some tricks for leaflet coordinate calculations
 """
+from typing import Tuple
+
+from source.lat_lng import LatLng
+from source.raster_data.tile_math import latlngToXY
 
 
 class FlatTiling():
     def __init__(self, top_level_range):
+        assert top_level_range > 0
         self.top_level_range = top_level_range
 
         self.start_x = -top_level_range
@@ -21,3 +27,14 @@ class FlatTiling():
         ymax = ymin + tile_width
 
         return (xmin, ymin, xmax, ymax)
+
+    def from_leaflet_LatLng(self, latlng: LatLng) -> Tuple[float, float]:
+        ref = [0, 0]
+        latlngToXY(latlng, 0, ref=ref)
+        x = ref[0]
+        y = ref[1]
+        assert 0 <= x <= 1
+        assert 0 <= y <= 1
+        x = (x * 2 * self.top_level_range) - self.top_level_range
+        y = (y * 2 * self.top_level_range) - self.top_level_range
+        return x, y
