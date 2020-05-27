@@ -28,5 +28,6 @@ class AbstractRasterDataProvider(abc.ABC):
 
         return res
 
+    @abc.abstractmethod
     def getSampleFN(self):
         pass

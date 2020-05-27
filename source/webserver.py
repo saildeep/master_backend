@@ -9,6 +9,7 @@ from source.complex_log_projection import ComplexLogProjection
 from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
 from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
+from source.raster_data.remote_raster_data_provider import RemoteRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import CosCutoffSmoothingFunction
 from source.raster_data.tile_resolver import HTTPTileFileResolver, TileURLResolver
@@ -44,6 +45,12 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     r = FileTileCache(r, TileFilenameResolver("mapbox"))
     r = MemoryTileCache(r, mem_size=100000)
     _providers['mapbox'] = OSMRasterDataProvider(r, max_zoom_level=30)
+
+
+    _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
+        url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?"
+                   + "access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b"
+                   + "_PQM3IiTstBoCujwPZOIA"))
     return _providers
 
 

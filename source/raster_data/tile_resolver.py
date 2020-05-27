@@ -13,6 +13,9 @@ class TileURLResolver():
     def __call__(self, tile: OSMTile) -> str:
         return self.url_format.format(tile.x, tile.y, tile.zoom)
 
+    def normalized(self) -> str:
+        return self.url_format.format("{x}", "{y}", "{z}")
+
 
 class AbstractTileImageResolver(abc.ABC):
 
