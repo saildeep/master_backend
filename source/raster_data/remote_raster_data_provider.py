@@ -32,8 +32,9 @@ class RemoteRasterDataProvider(AbstractRasterDataProvider):
 
 
 def sample(latlng: np.ndarray, init_data):
+    num_elements = latlng.shape[1]
     xyzoom = latlngZoomToXYZoomNP(latlng)
-    xy = xyzoom[0:2,:].astype(np.uint32) * 256
+    xy = (xyzoom[0:2,:] * 256).astype(np.uint32)
     zoom = xyzoom[2:,:].astype(np.uint32)
     xyzoom_clipped = np.concatenate([xy,zoom],axis=0)
     assert xyzoom_clipped.shape == xyzoom.shape
@@ -42,4 +43,6 @@ def sample(latlng: np.ndarray, init_data):
     binary = xyzoom_clipped.tobytes()
     resp = requests.post(init_data['resolver_url'], data=binary, headers={'Content-Type': 'application/octet-stream'})
     res_con = resp.content
-    pass
+    parsed_resp = np.frombuffer(res_con,np.uint8).reshape(num_elements,3).transpose()
+    assert parsed_resp.shape == xyzoom.shape
+    return parsed_resp
