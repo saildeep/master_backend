@@ -1,3 +1,4 @@
+from logging import info
 from typing import Optional
 
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
@@ -25,14 +26,18 @@ class RemoteRasterDataProvider(AbstractRasterDataProvider):
     def init_process(self, resolver):
         b64_suburl = base64.b64encode(resolver.normalized().encode('utf-8')).decode('utf-8')
         return {
-            "resolver_url": "http://localhost:8000/resolve/"+b64_suburl,
+            "resolver_url": "http://localhost:8000/resolve/"+b64_suburl + "/resolution/256",
 
         }
 
 
 def sample(latlng: np.ndarray, init_data):
     xyzoom = latlngZoomToXYZoomNP(latlng)
-    xyzoom_clipped = xyzoom.astype(np.uint32)
+    xy = xyzoom[0:2,:].astype(np.uint32) * 256
+    zoom = xyzoom[2:,:].astype(np.uint32)
+    xyzoom_clipped = np.concatenate([xy,zoom],axis=0)
+    assert xyzoom_clipped.shape == xyzoom.shape
+    xyzoom_clipped =xyzoom_clipped.transpose()
 
     binary = xyzoom_clipped.tobytes()
     resp = requests.post(init_data['resolver_url'], data=binary, headers={'Content-Type': 'application/octet-stream'})

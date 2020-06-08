@@ -46,11 +46,14 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     r = MemoryTileCache(r, mem_size=100000)
     _providers['mapbox'] = OSMRasterDataProvider(r, max_zoom_level=30)
 
-
+    """
     _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
         url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?"
                    + "access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b"
                    + "_PQM3IiTstBoCujwPZOIA"))
+    """
+    _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
+        url_format="https://a.tile.openstreetmap.de/{2}/{0}/{1}.png"))
     return _providers
 
 
