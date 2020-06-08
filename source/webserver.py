@@ -25,35 +25,23 @@ logging.basicConfig(level=logging.INFO)
 def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     _providers: Dict[str, AbstractRasterDataProvider] = {}
 
-    r = HTTPTileFileResolver(TileURLResolver(
+
+    _providers['default'] =  RemoteRasterDataProvider(TileURLResolver(
         url_format="https://a.tile.openstreetmap.de/{2}/{0}/{1}.png"))
-    r = FileTileCache(r, TileFilenameResolver("osm"))
-    r = MemoryTileCache(r, mem_size=100000)
-    _providers['default'] = OSMRasterDataProvider(r, max_zoom_level=19)
     _providers['osm'] = _providers['default']
 
-    r = HTTPTileFileResolver(TileURLResolver(
+
+    _providers['satellite'] =  RemoteRasterDataProvider(TileURLResolver(
         url_format="https://atlas34.inf.uni-konstanz.de/mbtiles/data/openmaptiles_satellite_lowres/{2}/{0}/{1}.jpg"))
-    r = FileTileCache(r, TileFilenameResolver("satellite_lowres"))
-    r = MemoryTileCache(r, mem_size=100000)
-    _providers['satellite'] = OSMRasterDataProvider(r, max_zoom_level=12)
 
-    r = HTTPTileFileResolver(TileURLResolver(
-        url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?"
-                   + "access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b"
-                   + "_PQM3IiTstBoCujwPZOIA"))
-    r = FileTileCache(r, TileFilenameResolver("mapbox"))
-    r = MemoryTileCache(r, mem_size=100000)
-    _providers['mapbox'] = OSMRasterDataProvider(r, max_zoom_level=30)
 
-    """
+
+
     _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
         url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?"
                    + "access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b"
                    + "_PQM3IiTstBoCujwPZOIA"))
-    """
-    _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
-        url_format="https://a.tile.openstreetmap.de/{2}/{0}/{1}.png"))
+
     return _providers
 
 

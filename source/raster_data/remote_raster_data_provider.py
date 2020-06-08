@@ -7,6 +7,7 @@ from source.raster_data.tile_math import latlngZoomToXYZoomNP
 import base64
 import numpy as np
 import requests
+import os
 
 from source.raster_data.tile_resolver import TileURLResolver
 
@@ -25,8 +26,9 @@ class RemoteRasterDataProvider(AbstractRasterDataProvider):
 
     def init_process(self, resolver):
         b64_suburl = base64.b64encode(resolver.normalized().encode('utf-8')).decode('utf-8')
+        server = os.environ.get("TILERESOLVER","127.0.0.1:8000")
         return {
-            "resolver_url": "http://localhost:8000/resolve/"+b64_suburl + "/resolution/256",
+            "resolver_url": "http://"+server+"/resolve/"+b64_suburl + "/resolution/256",
 
         }
 
