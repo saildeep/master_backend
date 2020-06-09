@@ -74,6 +74,7 @@ def do_projection(lat1, lng1, lat2, lng2, data_source: AbstractRasterDataProvide
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>.png")
 def projection(lat1, lng1, lat2, lng2):
     additional_dict = parse_request_args(request.args)
+    additional_dict.update(parse_angle(request.args))
     data_source = parse_source(request.args)
     return do_projection(lat1, lng1, lat2, lng2, data_source, **additional_dict)
 
@@ -83,28 +84,31 @@ tiling = FlatTiling(2 * math.pi)
 
 @app.route(
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
-    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/<int:zoom>/<int:x>/<int:y>.png")
-def tile(lat1, lng1, lat2, lng2, zoom, x, y):
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/<int:zoom>/<int:x>/<int:y>.png")
+def tile(lat1, lng1, lat2, lng2, zoom, x, y,cutoff):
     xmin, ymin, xmax, ymax = tiling(x, y, zoom)
-
+    ad = {}
     logging.info("Rendering tile with ({0},{1}) to ({2},{3})".format(xmin, ymin, xmax, ymax))
     source = parse_source(request.args)
 
-    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax)
+    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax,cutoff= math.radians(cutoff))
 
 
 @app.route(
     "/resolve/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
-    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>" +
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>" +"/cutoff/<float:cutoff>"+
     "/clickLat/<float(signed=True):clickLat>/clickLng/<float(signed=True):clickLng>.json")
-def resolve(lat1, lng1, lat2, lng2, clickLat, clickLng):
-    proj = ComplexLogProjection(LatLng(lat1, lng1), LatLng(lat2, lng2), math.pi / 6,
+def resolve(lat1, lng1, lat2, lng2, clickLat, clickLng, cutoff):
+    proj = ComplexLogProjection(LatLng(lat1, lng1), LatLng(lat2, lng2), math.radians(cutoff),
                                 smoothing_function_type=CosCutoffSmoothingFunction)
 
     x, y = tiling.from_leaflet_LatLng(LatLng(clickLat, clickLng))
 
     xy = np.array([[x], [y]])
     latlng_data = proj.invert(xy)
+
+    ad = {}
+    ad.update(parse_angle(request.args))
 
     assert latlng_data.shape == (2, 1)
     ret_data = {"lat": latlng_data[0, 0], "lng": latlng_data[1, 0]}
@@ -137,13 +141,16 @@ def parse_request_args(args: request) -> Dict:
         additional_dict['ymin'] = -v
         additional_dict['ymax'] = v
 
+
+
+def parse_angle(args) -> Dict:
+    additional_dict = {}
     # cutoff is provided as degree
     if 'cutoff' in args:
         v = abs(float(args['cutoff']) * math.pi / 180)
         additional_dict['cutoff'] = v
 
     return additional_dict
-
 
 def parse_source(args) -> AbstractRasterDataProvider:
     data_source = providers.get("default", None)
