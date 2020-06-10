@@ -1,6 +1,6 @@
 import json
 from io import BytesIO
-from typing import Dict
+from typing import Dict, Type
 
 import math
 from flask import Flask, send_file, request, abort, Response, jsonify
@@ -11,7 +11,7 @@ from source.raster_data.abstract_raster_data_provider import AbstractRasterDataP
 from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
 from source.raster_data.remote_raster_data_provider import RemoteRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
-from source.smoothing_functions import CosCutoffSmoothingFunction
+from source.smoothing_functions import CosCutoffSmoothingFunction, AbstractSmoothingFunction, DualCosSmoothingFunction
 from source.raster_data.tile_resolver import HTTPTileFileResolver, TileURLResolver
 from source.raster_data.tile_cache import FileTileCache, TileFilenameResolver, MemoryTileCache
 from PIL import Image
@@ -51,13 +51,14 @@ providers = get_providers()
 def do_projection(lat1, lng1, lat2, lng2, data_source: AbstractRasterDataProvider, pixel_width=256, pixel_height=256,
                   xmin=-1, xmax=1, ymin=-1,
                   ymax=1,
-                  cutoff=math.pi / 6
+                  cutoff=math.pi / 6,
+                  smoothing=CosCutoffSmoothingFunction
                   ):
     trange = TargetSectionDescription(xmin, xmax, pixel_width, ymin, ymax, pixel_height)
     c1 = LatLng(lat1, lng1)
     c2 = LatLng(lat2, lng2)
     proj = ComplexLogProjection(c1, c2, cutoff,
-                                smoothing_function_type=CosCutoffSmoothingFunction)
+                                smoothing_function_type=smoothing)
     projector = RasterProjector(proj, data_source)
 
     d = projector.project(trange)
@@ -84,23 +85,23 @@ tiling = FlatTiling(2 * math.pi)
 
 @app.route(
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
-    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/<int:zoom>/<int:x>/<int:y>.png")
-def tile(lat1, lng1, lat2, lng2, zoom, x, y,cutoff):
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>/<int:zoom>/<int:x>/<int:y>.png")
+def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y):
     xmin, ymin, xmax, ymax = tiling(x, y, zoom)
     ad = {}
     logging.info("Rendering tile with ({0},{1}) to ({2},{3})".format(xmin, ymin, xmax, ymax))
     source = parse_source(request.args)
 
-    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax,cutoff= math.radians(cutoff))
+    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax,cutoff= math.radians(cutoff),smoothing=parse_smoothing(smoothing))
 
 
 @app.route(
     "/resolve/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
-    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>" +"/cutoff/<float:cutoff>"+
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>"+
     "/clickLat/<float(signed=True):clickLat>/clickLng/<float(signed=True):clickLng>.json")
-def resolve(lat1, lng1, lat2, lng2, clickLat, clickLng, cutoff):
+def resolve(lat1, lng1, lat2, lng2, cutoff, smoothing, clickLat, clickLng):
     proj = ComplexLogProjection(LatLng(lat1, lng1), LatLng(lat2, lng2), math.radians(cutoff),
-                                smoothing_function_type=CosCutoffSmoothingFunction)
+                                smoothing_function_type=parse_smoothing(smoothing))
 
     x, y = tiling.from_leaflet_LatLng(LatLng(clickLat, clickLng))
 
@@ -163,6 +164,18 @@ def parse_source(args) -> AbstractRasterDataProvider:
     if data_source is None:
         abort(Response("No data source set"))
     return data_source
+
+def parse_smoothing(smoothing) -> Type[AbstractSmoothingFunction]:
+    types = {
+        "cos":CosCutoffSmoothingFunction,
+        "dualcos":DualCosSmoothingFunction
+    }
+
+    if smoothing in types:
+        return types[smoothing]
+
+    raise Exception("Invalid smoothing type "  + smoothing)
+
 
 
 @app.route('/test')
