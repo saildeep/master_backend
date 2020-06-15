@@ -13,3 +13,11 @@ class TestDualCosSmoothingFunction(unittest.TestCase):
             [1, np.cos(.2 * math.pi), np.cos(.25 * math.pi), np.cos(.25 * math.pi), np.cos(.5 * math.pi)])
         res = sf.scale(data)
         np.testing.assert_almost_equal(res, expected)
+
+    def test_vis_curve(self):
+        import matplotlib.pyplot as plt
+        sfdc = DualCosSmoothingFunction(math.pi/6)
+        inv = np.linspace(-math.pi,math.pi,400)
+
+        plt.plot(inv,sfdc.scale(inv))
+        plt.show()

@@ -67,7 +67,7 @@ class DualCosSmoothingFunction(AngleScalingSmoothingFunction):
 
         scale = np.zeros_like(data)
         scale[selection_incutoff] = np.cos(normed_angles[selection_incutoff])
-        scale[selection_outerspace] = np.cos(2 * self.cutoff_angle)
+        scale[selection_outerspace] = 1-( (1- np.cos( self.cutoff_angle))*2)
         scale[selection_inbetween] = 2 * cutoff_value + np.cos(
             cuton_position + (normed_angles[selection_inbetween] - self.cutoff_angle))
 
