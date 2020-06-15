@@ -62,7 +62,7 @@ def latlngZoomToXYZoomNP(data: np.ndarray) -> np.ndarray:
     n = np.power(2, zoom)
     x = (lng_deg + 180.0) / 360.0 * n
     y = (1.0 - np.arcsinh(np.tan(lat_rad)) / math.pi) / 2.0 * n
-    return np.stack([x, y, zoom], axis=0)
+    return np.stack([x, y, data[2,:]], axis=0)
 
 
 def latlngToTilePixel(latlng: LatLng, zoom: int, tile_size: int = 256, ref: Optional[List[float]] = None) \
