@@ -37,7 +37,7 @@ def sample(latlng: np.ndarray, init_data):
     num_elements = latlng.shape[1]
     xyzoom = latlngZoomToXYZoomNP(latlng)
     xy = (xyzoom[0:2,:] * 256).astype(np.uint32)
-    zoom = xyzoom[2:,:].astype(np.uint32)
+    zoom = (xyzoom[2:,:]*256).astype(np.uint32)
     xyzoom_clipped = np.concatenate([xy,zoom],axis=0)
     assert xyzoom_clipped.shape == xyzoom.shape
     xyzoom_clipped =xyzoom_clipped.transpose()
