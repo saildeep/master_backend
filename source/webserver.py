@@ -80,7 +80,7 @@ def projection(lat1, lng1, lat2, lng2):
     return do_projection(lat1, lng1, lat2, lng2, data_source, **additional_dict)
 
 
-tiling = FlatTiling(2 * math.pi)
+tiling = FlatTiling(4 * math.pi)
 
 
 @app.route(
