@@ -23,7 +23,7 @@ class AbstractRasterDataProvider(abc.ABC):
 
         res = sample_fn(positions_with_zoom, self._init_data)
 
-        assert res.shape == positions_with_zoom.shape
+        assert res.shape == (3,positions_with_zoom.shape[1]) or res.shape == (4,positions_with_zoom.shape[1])
         assert res.dtype == np.uint8
 
         return res
