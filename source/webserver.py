@@ -34,7 +34,8 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     _providers['satellite'] =  RemoteRasterDataProvider(TileURLResolver(
         url_format="https://atlas34.inf.uni-konstanz.de/mbtiles/data/openmaptiles_satellite_lowres/{2}/{0}/{1}.jpg"))
 
-
+    _providers['transparent'] = RemoteRasterDataProvider(TileURLResolver(
+        url_format="https://atlas34.inf.uni-konstanz.de/osmtiles/tile/{2}/{0}/{1}.png"))
 
 
     _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
