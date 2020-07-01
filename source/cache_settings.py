@@ -16,8 +16,9 @@ def build_cache_config():
     else:
         logging.info("Using memcached " + memcached_url)
         general_values["CACHE_TYPE"] = "memcached"
-        general_values["CACHE_MEMCACHED_SERVERS"] = memcached_url.split(",")
+        general_values["CACHE_MEMCACHED_SERVERS"] = [memcached_url]
         general_values["CACHE_KEY_PREFIX"] = "be"
+        return general_values
 
 def make_cache_key(*args, **kwargs):
     path = request.path
