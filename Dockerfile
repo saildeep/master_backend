@@ -6,7 +6,7 @@ WORKDIR /app
 RUN pip install --upgrade pip \
  && pip install uwsgi\
  && apt-get update\
- && apt-get install -y memcached\
+ && apt-get install -y memcached libmemcached\
  &&  sed -i 's/-m 64/-m 4000/g' /etc/memcached.conf
 
 
@@ -19,6 +19,7 @@ USER admin
 
 EXPOSE 5000/tcp
 ENV PYTHONPATH /app
+ENV MEMCACHED_URL 127.0.0.1:11211
 WORKDIR /app/source
 #CMD ["python","-m","flask","run","--host=0.0.0.0"]
 #CMD ["uwsgi","--","0.0.0.0:5000","--protocol","http","-w","source.wsgi:app", "-M","--workers","6","--wsgi-disable-file-wrapper", "--enable-threads"]
