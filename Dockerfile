@@ -6,7 +6,7 @@ WORKDIR /app
 RUN pip install --upgrade pip \
  && pip install uwsgi\
  && apt-get update\
- && apt-get install -y memcached libmemcached-dev
+ && apt-get install -y memcached libmemcached-dev python3-pylibmc
 
 
 
