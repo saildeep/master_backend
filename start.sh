@@ -1,3 +1,3 @@
 #!/bin/bash
-memcached -d logfile /var/log/memcached.log -s /app/memcached.sock -a 775 -v --memory-limit=8192 --threads=16
+memcached -s /app/memcached.sock -a 775 -v --memory-limit=8192 --threads=16 > /app/memcached.log &
 uwsgi --ini /app/uwsgi.ini
