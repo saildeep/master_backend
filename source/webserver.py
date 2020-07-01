@@ -3,23 +3,25 @@ from io import BytesIO
 from typing import Dict, Type
 
 import math
-from flask import Flask, send_file, request, abort, Response, jsonify
+from flask import Flask, send_file, request, abort, Response
+from flask_caching import  Cache
 import logging
 from source.complex_log_projection import ComplexLogProjection
 from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
-from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
+from source.cache_settings import build_cache_config, make_cache_key
 from source.raster_data.remote_raster_data_provider import RemoteRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import CosCutoffSmoothingFunction, AbstractSmoothingFunction, DualCosSmoothingFunction
-from source.raster_data.tile_resolver import HTTPTileFileResolver, TileURLResolver
-from source.raster_data.tile_cache import FileTileCache, TileFilenameResolver, MemoryTileCache
+from source.raster_data.tile_resolver import  TileURLResolver
 from PIL import Image
 from source.flat_tiling import FlatTiling
 import numpy as np
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
+app.config.from_mapping(build_cache_config())
+cache = Cache(app)
 
 
 def get_providers() -> Dict[str, AbstractRasterDataProvider]:
@@ -76,6 +78,7 @@ def do_projection(lat1, lng1, lat2, lng2, data_source: AbstractRasterDataProvide
 @app.route(
     "/projection/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>.png")
+
 def projection(lat1, lng1, lat2, lng2):
     additional_dict = parse_request_args(request.args)
     additional_dict.update(parse_angle(request.args))
@@ -89,6 +92,7 @@ tiling = FlatTiling(3 * math.pi)
 @app.route(
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>/<int:zoom>/<int:x>/<int:y>.png")
+@cache.cached(timeout=60*60*24*7,key_prefix=make_cache_key)
 def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y):
     xmin, ymin, xmax, ymax = tiling(x, y, zoom)
     ad = {}
