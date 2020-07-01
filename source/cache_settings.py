@@ -20,6 +20,13 @@ def build_cache_config():
         general_values["CACHE_MEMCACHED_SERVERS"] = [memcached_url]
         general_values["CACHE_KEY_PREFIX"] = "be"
         return general_values
+def make_url_cache_key(*args,**kwaags):
+    k = request.url
+
+    if len(k)>240:
+        logging.info("Key to long " + k)
+    return k.encode('utf-8')
+
 
 def make_cache_key(*args, **kwargs):
     path = request.path

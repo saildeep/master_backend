@@ -9,7 +9,7 @@ import logging
 from source.complex_log_projection import ComplexLogProjection
 from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
-from source.cache_settings import build_cache_config, make_cache_key
+from source.cache_settings import build_cache_config, make_url_cache_key
 from source.raster_data.remote_raster_data_provider import RemoteRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import CosCutoffSmoothingFunction, AbstractSmoothingFunction, DualCosSmoothingFunction
@@ -92,7 +92,7 @@ tiling = FlatTiling(3 * math.pi)
 @app.route(
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>/<int:zoom>/<int:x>/<int:y>.png")
-@cache.cached(timeout=60*60*24*7,key_prefix=make_cache_key)
+@cache.cached(timeout=60*60*24*7,key_prefix=make_url_cache_key)
 def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y):
     xmin, ymin, xmax, ymax = tiling(x, y, zoom)
     ad = {}
