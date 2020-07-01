@@ -13,7 +13,7 @@ USER admin
 
 COPY . /app
 COPY ./start.sh /app/source/start.sh
-RUN pip install -r requirements. && chmod +x /app/source/start.sh
+RUN pip install -r requirements && chmod +x /app/source/start.sh
 
 
 
