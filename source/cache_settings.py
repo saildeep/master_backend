@@ -1,5 +1,6 @@
 import logging
 import os
+import base64
 from flask import request
 
 def build_cache_config():
@@ -23,5 +24,5 @@ def build_cache_config():
 def make_cache_key(*args, **kwargs):
     path = request.path
     args = str(hash(frozenset(request.args.items())))
-
-    return (path + args ).encode('utf-8')
+    returnable_string = (path + args ).replace(" ","")
+    return base64.b64encode(returnable_string.encode('utf-8'))
