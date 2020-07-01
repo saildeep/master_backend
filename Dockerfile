@@ -6,9 +6,7 @@ WORKDIR /app
 RUN pip install --upgrade pip \
  && pip install uwsgi\
  && apt-get update\
- && apt-get install -y memcached libmemcached-dev \
- &&  sed -i 's/-m 64/-m 4000/g' /etc/memcached.conf
- &&  sed -t 's/-t 4/-t 16/g' /etc/memcached.conf
+ && apt-get install -y memcached libmemcached-dev
 
 
 
