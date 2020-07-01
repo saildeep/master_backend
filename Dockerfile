@@ -9,12 +9,12 @@ RUN pip install --upgrade pip \
  && apt-get install -y memcached\
  &&  sed -i 's/-m 64/-m 4000/g' /etc/memcached.conf
 
-USER admin
+
 
 COPY . /app
 COPY ./start.sh /app/source/start.sh
 RUN pip install -r /app/requirements.txt && chmod +x /app/source/start.sh
-
+USER admin
 
 
 EXPOSE 5000/tcp
