@@ -43,9 +43,7 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
         url_format="https://atlas34.inf.uni-konstanz.de/routes/tile/{2}/{0}/{1}.png"))
 
     _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
-        url_format="https://api.mapbox.com/v4/mapbox.satellite/{2}/{0}/{1}.jpg90?"
-                   + "access_token=pk.eyJ1IjoiamtvZXJuZXIiLCJhIjoiY2thaHp1aW5mMGQ1eDJ6cWc0MGF0OXZxeCJ9.b"
-                   + "_PQM3IiTstBoCujwPZOIA"))
+        url_format="https://atlas34.inf.uni-konstanz.de/mapbox/{2}/{0}/{1}.jpg90"))
 
     return _providers
 
