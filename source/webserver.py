@@ -138,7 +138,7 @@ def resolve(lat1, lng1, lat2, lng2, cutoff, smoothing, clickLat, clickLng):
     return response
 
 @app.route("/providers")
-def providers():
+def fetch_providers():
     p = get_providers()
     out_dict ={}
     for prov_name,prov_data in p.items():
@@ -148,7 +148,8 @@ def providers():
 
             out_dict[prov_name] =res.normalized()
 
-    return jsonify(out_dict)
+    response = jsonify(out_dict)
+    return add_cors_headers(response)
 
 def parse_request_args(args: request) -> Dict:
     additional_dict = {}
@@ -208,3 +209,10 @@ def parse_smoothing(smoothing) -> Type[AbstractSmoothingFunction]:
 def test():
     args = request.args
     return json.dumps(args)
+
+
+def add_cors_headers(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
