@@ -3,7 +3,7 @@ from io import BytesIO
 from typing import Dict, Type
 
 import math
-from flask import Flask, send_file, request, abort, Response
+from flask import Flask, send_file, request, abort, Response, jsonify
 from flask_caching import  Cache
 import logging
 from source.complex_log_projection import ComplexLogProjection
@@ -39,8 +39,17 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     _providers['transparent'] = RemoteRasterDataProvider(TileURLResolver(
         url_format="https://atlas34.inf.uni-konstanz.de/osmtiles/tile/{2}/{0}/{1}.png"))
 
-    _providers['routes'] = RemoteRasterDataProvider(TileURLResolver(
-        url_format="https://atlas34.inf.uni-konstanz.de/routes/tile/{2}/{0}/{1}.png"))
+    _providers['route1'] = RemoteRasterDataProvider(TileURLResolver(
+        url_format="https://atlas34.inf.uni-konstanz.de/route1/tile/{2}/{0}/{1}.png"))
+
+    _providers['route2'] = RemoteRasterDataProvider(TileURLResolver(
+        url_format="https://atlas34.inf.uni-konstanz.de/route1/tile/{2}/{0}/{1}.png"))
+
+    _providers['route3'] = RemoteRasterDataProvider(TileURLResolver(
+        url_format="https://atlas34.inf.uni-konstanz.de/route1/tile/{2}/{0}/{1}.png"))
+
+    _providers['route4'] = RemoteRasterDataProvider(TileURLResolver(
+        url_format="https://atlas34.inf.uni-konstanz.de/route1/tile/{2}/{0}/{1}.png"))
 
     _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
         url_format="https://atlas34.inf.uni-konstanz.de/mapbox/{2}/{0}/{1}.jpg90"))
@@ -128,6 +137,18 @@ def resolve(lat1, lng1, lat2, lng2, cutoff, smoothing, clickLat, clickLng):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
+@app.route("/providers")
+def providers():
+    p = get_providers()
+    out_dict ={}
+    for prov_name,prov_data in p.items():
+        if  isinstance(prov_data,RemoteRasterDataProvider):
+            prov_data_r : RemoteRasterDataProvider = prov_data
+            res:TileURLResolver = prov_data_r.resolver
+
+            out_dict[prov_name] =res.normalized()
+
+    return jsonify(out_dict)
 
 def parse_request_args(args: request) -> Dict:
     additional_dict = {}
