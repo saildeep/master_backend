@@ -39,17 +39,11 @@ def get_providers() -> Dict[str, AbstractRasterDataProvider]:
     _providers['transparent'] = RemoteRasterDataProvider(TileURLResolver(
         url_format="https://atlas34.inf.uni-konstanz.de/osmtiles/tile/{2}/{0}/{1}.png"))
 
-    _providers['route1'] = RemoteRasterDataProvider(TileURLResolver(
-        url_format="https://atlas34.inf.uni-konstanz.de/route1/tile/{2}/{0}/{1}.png"))
+    for i in [1,2,3,4,5,6]:
 
-    _providers['route2'] = RemoteRasterDataProvider(TileURLResolver(
-        url_format="https://atlas34.inf.uni-konstanz.de/route2/tile/{2}/{0}/{1}.png"))
+        _providers['route' + str(i)] = RemoteRasterDataProvider(TileURLResolver(
+            url_format="https://atlas34.inf.uni-konstanz.de/route" +str(i) + "/tile/{2}/{0}/{1}.png"))
 
-    _providers['route3'] = RemoteRasterDataProvider(TileURLResolver(
-        url_format="https://atlas34.inf.uni-konstanz.de/route3/tile/{2}/{0}/{1}.png"))
-
-    _providers['route4'] = RemoteRasterDataProvider(TileURLResolver(
-        url_format="https://atlas34.inf.uni-konstanz.de/route4/tile/{2}/{0}/{1}.png"))
 
     _providers['mapbox'] = RemoteRasterDataProvider(TileURLResolver(
         url_format="https://atlas34.inf.uni-konstanz.de/mapbox/{2}/{0}/{1}.jpg90"))
