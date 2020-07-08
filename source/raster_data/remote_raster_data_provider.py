@@ -34,6 +34,9 @@ class RemoteRasterDataProvider(AbstractRasterDataProvider):
 
 
 def sample(latlng: np.ndarray, init_data):
+    if latlng.shape[1] == 0:
+        return np.zeros((4,0),dtype=np.uint8)
+
     num_elements = latlng.shape[1]
     xyzoom = latlngZoomToXYZoomNP(latlng)
     xy = (xyzoom[0:2,:] * 256).astype(np.uint32)
