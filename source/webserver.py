@@ -58,7 +58,8 @@ def do_projection(lat1, lng1, lat2, lng2, data_source: AbstractRasterDataProvide
                   xmin=-1, xmax=1, ymin=-1,
                   ymax=1,
                   cutoff=math.pi / 6,
-                  smoothing=CosCutoffSmoothingFunction
+                  smoothing=CosCutoffSmoothingFunction,
+                  fileformat='png'
                   ):
     trange = TargetSectionDescription(xmin, xmax, pixel_width, ymin, ymax, pixel_height)
     c1 = LatLng(lat1, lng1)
@@ -70,9 +71,9 @@ def do_projection(lat1, lng1, lat2, lng2, data_source: AbstractRasterDataProvide
     d = projector.project(trange)
     pilim = Image.fromarray(d)
     img_io = BytesIO()
-    pilim.save(img_io, 'PNG')
+    pilim.save(img_io,fileformat)
     img_io.seek(0)
-    return send_file(img_io, mimetype='image/png')
+    return send_file(img_io, mimetype='image/'+fileformat)
 
 
 # sample http://127.0.0.1:5000/projection/lat1/10.0/lng1/10.0/lat2/0.0/lng2/0.0.png
@@ -92,15 +93,18 @@ tiling = FlatTiling(3 * math.pi)
 
 @app.route(
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
-    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>/<int:zoom>/<int:x>/<int:y>.png")
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>/<int:zoom>/<int:x>/<int:y>.<string:fileformat>")
 @cache.cached(timeout=60*60*24*7,key_prefix=make_url_cache_key)
-def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y):
+def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y,fileformat):
+    allowed_formats =  ["png","webp"]
+    if fileformat not in allowed_formats:
+        return "file format needs to by of type " + str(allowed_formats), 400
     xmin, ymin, xmax, ymax = tiling(x, y, zoom)
     ad = {}
     logging.info("Rendering tile with ({0},{1}) to ({2},{3})".format(xmin, ymin, xmax, ymax))
     source = parse_source(request.args)
 
-    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax,cutoff= math.radians(cutoff),smoothing=parse_smoothing(smoothing))
+    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax,cutoff= math.radians(cutoff),smoothing=parse_smoothing(smoothing),fileformat=fileformat)
 
 
 @app.route(
