@@ -46,9 +46,15 @@ def sample(latlng: np.ndarray, init_data):
     xyzoom_clipped =xyzoom_clipped.transpose()
 
     binary = xyzoom_clipped.tobytes()
-    resp = requests.post(init_data['resolver_url'], data=binary, headers={'Content-Type': 'application/octet-stream'})
-    if(resp.status_code != 200):
-        info("Received status {0}".format(resp.status_code) )
+    resp = None
+    for _tries in range(10):
+        resp = requests.post(init_data['resolver_url'], data=binary, headers={'Content-Type': 'application/octet-stream'})
+
+
+        if(resp.status_code == 200):
+            break
+        else:
+            info("Received status {0}".format(resp.status_code))
     res_con = resp.content
     parsed_resp = np.frombuffer(res_con,np.uint8).reshape(num_elements,4).transpose()
     assert parsed_resp.shape == (4,xyzoom.shape[1])
