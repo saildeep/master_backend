@@ -55,6 +55,10 @@ def sample(latlng: np.ndarray, init_data):
             break
         else:
             info("Received status {0}".format(resp.status_code))
+
+        if _tries >8:
+            raise ConnectionError("Could not get valid result")
+
     res_con = resp.content
     parsed_resp = np.frombuffer(res_con,np.uint8).reshape(num_elements,4).transpose()
     assert parsed_resp.shape == (4,xyzoom.shape[1])
