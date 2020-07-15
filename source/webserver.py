@@ -111,7 +111,7 @@ def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y,fileformat):
         except ConnectionError as e:
             logging.warning(e)
 
-
+    logging.warning(request.url +" "+ str(request.args) +  "could not be resolved!")
     return "" ,500
 
 
