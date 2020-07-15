@@ -104,7 +104,15 @@ def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y,fileformat):
     logging.info("Rendering tile with ({0},{1}) to ({2},{3})".format(xmin, ymin, xmax, ymax))
     source = parse_source(request.args)
 
-    return do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax,cutoff= math.radians(cutoff),smoothing=parse_smoothing(smoothing),fileformat=fileformat)
+    for i in range(5):
+        try:
+            projected = do_projection(lat1, lng1, lat2, lng2, source, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax,cutoff= math.radians(cutoff),smoothing=parse_smoothing(smoothing),fileformat=fileformat)
+            return projected
+        except ConnectionError as e:
+            logging.warning(e)
+
+
+    return "" ,500
 
 
 @app.route(

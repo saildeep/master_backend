@@ -1,5 +1,7 @@
-from logging import info
+from logging import info,warning
 from typing import Optional
+
+import urllib3
 
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
 from source.raster_data.tile_math import latlngZoomToXYZoomNP
@@ -47,17 +49,18 @@ def sample(latlng: np.ndarray, init_data):
 
     binary = xyzoom_clipped.tobytes()
     resp = None
-    for _tries in range(10):
+    try:
         resp = requests.post(init_data['resolver_url'], data=binary, headers={'Content-Type': 'application/octet-stream'})
+    except requests.exceptions.RequestException as e:
+
+        raise ConnectionError("Could not connect to remote " + init_data['resolver_url'] + ":" + str(e))
 
 
-        if(resp.status_code == 200):
-            break
-        else:
-            info("Received status {0}".format(resp.status_code))
 
-        if _tries >8:
-            raise ConnectionError("Could not get valid result")
+    if(resp.status_code != 200):
+        raise  ConnectionError()
+
+
 
     res_con = resp.content
     parsed_resp = np.frombuffer(res_con,np.uint8).reshape(num_elements,4).transpose()
