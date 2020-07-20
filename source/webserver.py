@@ -93,7 +93,7 @@ tiling = FlatTiling(3 * math.pi)
 
 @app.route(
     "/tile/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
-    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>/<int:zoom>/<int:x>/<int:y>.<string:fileformat>")
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>/<int:zoom>/<int(signed=True):x>/<int(signed=True):y>.<string:fileformat>")
 @cache.cached(timeout=60*60*24*7,key_prefix=make_url_cache_key)
 def tile(lat1, lng1, lat2, lng2, cutoff, smoothing, zoom, x, y,fileformat):
     allowed_formats =  ["png","webp"]
