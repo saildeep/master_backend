@@ -7,6 +7,7 @@ from source.raster_data.osm_raster_data_provider import OSMRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import DualCosSmoothingFunction, CosCutoffSmoothingFunction
 from source.zoomable_projection import IdentityProjection
+from source.hard_coded_providers import get_providers
 
 from logging import basicConfig, INFO
 
@@ -67,19 +68,23 @@ class TestRasterProjector(unittest.TestCase):
         plt.show()
 
     def test_project_image_osm_wide(self):
+        prov = get_providers()
         konstanz = LatLng(47.711801, 9.084545)
-        moscow = LatLng(55.712998, 37.627815)
-        projection = ComplexLogProjection(konstanz, moscow, math.pi / 6,
+        leipzig = LatLng(51.348419,12.370946) #
+        projection = ComplexLogProjection(konstanz, leipzig, math.pi / 6,
                                           smoothing_function_type=CosCutoffSmoothingFunction)
-        projector = RasterProjector(projection, OSMRasterDataProvider(dummy_resolver))
+        projector = RasterProjector(projection, prov['transparent'])
         trange = TargetSectionDescription(-math.pi * 4, math.pi * 4, 2000, -math.pi, math.pi, 500)
         d = projector.project(trange)
 
         import matplotlib.pyplot as plt
         plt.imshow(d)
-        plt.show()
+        plt.savefig("sample.png",dpi=2000)
+        plt.clf()
 
     def test_vis_zoomLevel(self):
+
+
         projection1 = ComplexLogProjection(LatLng(0, 0), LatLng(10, 10), math.pi / 4)
         projection2 = ComplexLogProjection(LatLng(-10, -10), LatLng(10, 10), math.pi / 4)
         projector = RasterProjector(projection1, OSMRasterDataProvider(dummy_resolver))
