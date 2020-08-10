@@ -82,3 +82,22 @@ def anglesBetween(vecs1:np.ndarray,vecs2:np.ndarray):
     assert vecs1.shape[1] == vecs2.shape[1] or vecs1.shape[1] ==1 or vecs2.shape[1]
 
     return np.arccos(np.sum(vecs1 * vecs2,axis=0,keepdims=True))
+
+def triangleArea(p1:np.ndarray,p2:np.ndarray,p3:np.ndarray):
+    assertMultipleVec2d(p1)
+    assertMultipleVec2d(p2)
+    assertMultipleVec2d(p3)
+    assert  p1.shape[1] == p2.shape[1] and p1.shape[1] == p3.shape[1]
+
+    ax = p1[0,:]
+    ay = p1[1,:]
+
+    bx = p2[0,:]
+    by = p2[1,:]
+
+    cx = p3[0,:]
+    cy = p3[1,:]
+
+    #https://www.mathopenref.com/coordtrianglearea.html
+    top = ax * (by-cy) + bx * (cy - ay) + cx *(ay - by)
+    return np.abs(top * .5)

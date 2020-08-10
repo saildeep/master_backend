@@ -9,7 +9,7 @@ from source.preprojections import IdentityPreprojection
 from source.raster_data.function_raster_data_provider import CosSinRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import DualCosSmoothingFunction
-from source.mathutils import euclideanDist, anglesBetween
+from source.mathutils import euclideanDist, anglesBetween, triangleArea
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
@@ -71,10 +71,11 @@ class CreateSampleImages(TestCase):
         for angle in [0,15,30,45]:
             projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
             trange = TargetSectionDescription(-2,2,3000,-2,2,3000)
+            extent = [trange.xmin,trange.xmax,trange.ymin,trange.ymax]
             rp = RasterProjector(projection,CosSinRasterDataProvider)
             grid = rp.build_grid(trange)
             #offset = np.stack([          np.ones((grid.shape[1],))*0.01,            np.ones((grid.shape[1],))*0],axis=0)
-            limb_length_max = 0.01
+            limb_length_max = 0.001
             offset = np.random.uniform(-limb_length_max/math.sqrt(2),limb_length_max/math.sqrt(2),grid.shape)
             offset_2 =  np.stack([offset[1,:],-offset[0,:] ],axis=0)
             #offset_2 = np.random.uniform(-0.01,0.01,grid.shape)
@@ -90,14 +91,14 @@ class CreateSampleImages(TestCase):
             rsg = np.squeeze(rp.reshape_grid(ratio_e,trange,1),axis=-1)
             minv,maxv = rsg.min(),rsg.max()
             plt.figure(figsize=(6,6))
-            plt.title("Area ratio for cutoff angle "+ str(angle)+"°")
-            plt.imshow(rsg,norm=LogNorm(0.1,100,clip=True),extent=[trange.xmin,trange.xmax,trange.ymin,trange.ymax])
+            plt.title("Distance ratio for cutoff angle "+ str(angle)+"°")
+            plt.imshow(rsg,norm=LogNorm(0.1,100,clip=True),extent=extent)
             plt.colorbar()
-            plt.savefig('./area-ratio-{}.png'.format(angle),dpi=600)
+            plt.savefig('./distance-ratio-{}.pdf'.format(angle),dpi=600)
 
 
-            delta1 = grid_offset-grid
-            delta2 = grid_offset_2 -grid
+            delta1 = grid_offset- grid
+            delta2 = grid_offset_2 - grid
             angles = anglesBetween(delta1,delta2)
 
 
@@ -108,11 +109,23 @@ class CreateSampleImages(TestCase):
             angles_formatted = np.squeeze(rp.reshape_grid(angle_diff,trange,1),axis=-1)
             plt.figure(figsize=(6,6))
             plt.title("Angle difference for transformed right angles\nwith limb lengths under {}\nwith a cutoff angle of {}°".format(limb_length_max,angle))
-            plt.imshow(angles_formatted,norm=LogNorm(1e-13,30,clip=True))
+            plt.imshow(angles_formatted,norm=LogNorm(1e-13,30,clip=True),extent=extent)
             clbar = plt.colorbar()
             clbar.set_label("deviation in °")
-            plt.savefig('./angle-difference-{}.png'.format(angle),dpi=1200)
+            plt.savefig('./angle-difference-{}.pdf'.format(angle),dpi=600)
 
+
+
+            area = triangleArea(grid,grid_offset,grid_offset_2)
+            area_projected = triangleArea(grid_projected,grid_offset_projected,grid_offset_projected_2)
+
+            area_ratio = np.squeeze(rp.reshape_grid(np.expand_dims(area/area_projected,axis=0),trange,1))
+            plt.figure(figsize=(6, 6))
+            plt.title("Area ratio for a cutoff angle of {}".format(angle))
+            plt.imshow(area_ratio,norm=LogNorm(0.01,10),extent=extent)
+            clbar = plt.colorbar()
+            clbar.set_label("Original area to projected area ratio")
+            plt.savefig('./area-ratio-{}.pdf'.format(angle),dpi = 600)
             pass
 
 
