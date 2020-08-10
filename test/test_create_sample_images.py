@@ -5,9 +5,15 @@ import math
 from source.complex_log_projection import ComplexLogProjection
 from source.hard_coded_providers import get_providers
 from source.lat_lng import LatLng
+from source.preprojections import IdentityPreprojection
+from source.raster_data.function_raster_data_provider import CosSinRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import DualCosSmoothingFunction
+from source.mathutils import euclideanDist
 from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize,LogNorm
 
 class CreateSampleImages(TestCase):
     def test_project_image_angles(self):
@@ -60,4 +66,25 @@ class CreateSampleImages(TestCase):
 
                 print("Finished " + filename + " with distance " + str(dist))
 
+    def test_distance_scaling(self):
+
+        for angle in [0,15,30,45]:
+            projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
+            trange = TargetSectionDescription(-1.5,1.5,3000,-2,2,4000)
+            rp = RasterProjector(projection,CosSinRasterDataProvider)
+            grid = rp.build_grid(trange)
+            grid_offset = grid+ np.random.uniform(-0.001,0.001,grid.shape)
+            euclid = euclideanDist(grid,grid_offset)
+            grid_projected = projection(grid)
+            grid_offset_projected = projection(grid_offset)
+            projected_euclid = euclideanDist(grid_projected,grid_offset_projected)
+            ratio = projected_euclid / euclid
+            ratio_e = np.expand_dims(ratio,axis=0)
+            rsg = np.squeeze(rp.reshape_grid(ratio_e,trange,1),axis=-1)
+            minv,maxv = rsg.min(),rsg.max()
+            plt.title("Area ratio for cutoff angle "+ str(angle))
+            plt.imshow(rsg,norm=LogNorm(0.1,100,clip=True),extent=[trange.xmin,trange.xmax,trange.ymin,trange.ymax])
+            plt.colorbar()
+            plt.show()
+            pass
 

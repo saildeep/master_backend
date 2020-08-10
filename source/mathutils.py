@@ -51,7 +51,7 @@ def vectorAngles(vec: np.ndarray) -> np.ndarray:
 
 
 def euclideanDistSquared(points: np.ndarray, point: np.ndarray) -> np.ndarray:
-    assertSingleVec2d(point)
+    assertMultipleVec2d(point)
     assertMultipleVec2d(points)
     res = np.sum(np.square(points - point), axis=0)
     return res

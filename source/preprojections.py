@@ -25,6 +25,14 @@ class AbstractPreprojection(abc.ABC):
     def _backward(self, xy: np.ndarray) -> np.ndarray:
         pass
 
+class IdentityPreprojection(AbstractPreprojection):
+
+    def _forward(self, latlng_radians: np.ndarray) -> np.ndarray:
+        return latlng_radians
+
+    def _backward(self, xy: np.ndarray) -> np.ndarray:
+        return xy
+
 
 # implementation according to https://github.com/d3/d3-geo/blob/master/src/projection/azimuthal.js
 class AbstractAzimutalProject(AbstractPreprojection):
