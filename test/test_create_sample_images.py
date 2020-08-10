@@ -9,7 +9,7 @@ from source.preprojections import IdentityPreprojection
 from source.raster_data.function_raster_data_provider import CosSinRasterDataProvider
 from source.raster_projector import RasterProjector, TargetSectionDescription
 from source.smoothing_functions import DualCosSmoothingFunction
-from source.mathutils import euclideanDist
+from source.mathutils import euclideanDist, anglesBetween
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
@@ -70,21 +70,50 @@ class CreateSampleImages(TestCase):
 
         for angle in [0,15,30,45]:
             projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
-            trange = TargetSectionDescription(-1.5,1.5,3000,-2,2,4000)
+            trange = TargetSectionDescription(-2,2,3000,-2,2,3000)
             rp = RasterProjector(projection,CosSinRasterDataProvider)
             grid = rp.build_grid(trange)
-            grid_offset = grid+ np.random.uniform(-0.001,0.001,grid.shape)
+            #offset = np.stack([          np.ones((grid.shape[1],))*0.01,            np.ones((grid.shape[1],))*0],axis=0)
+            limb_length_max = 0.01
+            offset = np.random.uniform(-limb_length_max/math.sqrt(2),limb_length_max/math.sqrt(2),grid.shape)
+            offset_2 =  np.stack([offset[1,:],-offset[0,:] ],axis=0)
+            #offset_2 = np.random.uniform(-0.01,0.01,grid.shape)
+            grid_offset = grid+ offset
+            grid_offset_2 = grid + offset_2
             euclid = euclideanDist(grid,grid_offset)
             grid_projected = projection(grid)
             grid_offset_projected = projection(grid_offset)
+            grid_offset_projected_2 = projection(grid_offset_2)
             projected_euclid = euclideanDist(grid_projected,grid_offset_projected)
             ratio = projected_euclid / euclid
             ratio_e = np.expand_dims(ratio,axis=0)
             rsg = np.squeeze(rp.reshape_grid(ratio_e,trange,1),axis=-1)
             minv,maxv = rsg.min(),rsg.max()
-            plt.title("Area ratio for cutoff angle "+ str(angle))
+            plt.figure(figsize=(6,6))
+            plt.title("Area ratio for cutoff angle "+ str(angle)+"°")
             plt.imshow(rsg,norm=LogNorm(0.1,100,clip=True),extent=[trange.xmin,trange.xmax,trange.ymin,trange.ymax])
             plt.colorbar()
-            plt.show()
+            plt.savefig('./area-ratio-{}.png'.format(angle),dpi=600)
+
+
+            delta1 = grid_offset-grid
+            delta2 = grid_offset_2 -grid
+            angles = anglesBetween(delta1,delta2)
+
+
+            delta1_projected = grid_offset_projected - grid_projected
+            delta2_projected = grid_offset_projected_2 - grid_projected
+            angles_projected = anglesBetween(delta1_projected,delta2_projected)
+            angle_diff = np.degrees( np.abs(angles-angles_projected))
+            angles_formatted = np.squeeze(rp.reshape_grid(angle_diff,trange,1),axis=-1)
+            plt.figure(figsize=(6,6))
+            plt.title("Angle difference for transformed right angles\nwith limb lengths under {}\nwith a cutoff angle of {}°".format(limb_length_max,angle))
+            plt.imshow(angles_formatted,norm=LogNorm(1e-13,30,clip=True))
+            clbar = plt.colorbar()
+            clbar.set_label("deviation in °")
+            plt.savefig('./angle-difference-{}.png'.format(angle),dpi=1200)
+
             pass
+
+
 

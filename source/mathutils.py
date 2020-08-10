@@ -75,3 +75,10 @@ def normalizeAngles(angles: np.ndarray) -> np.ndarray:
     selection = angles > math.pi
     angles[selection] -= 2 * math.pi
     return angles
+
+def anglesBetween(vecs1:np.ndarray,vecs2:np.ndarray):
+    assertMultipleVec2d(vecs1)
+    assertMultipleVec2d(vecs2)
+    assert vecs1.shape[1] == vecs2.shape[1] or vecs1.shape[1] ==1 or vecs2.shape[1]
+
+    return np.arccos(np.sum(vecs1 * vecs2,axis=0,keepdims=True))
