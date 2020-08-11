@@ -68,14 +68,20 @@ class CreateSampleImages(TestCase):
 
     def test_distance_scaling(self):
 
-        for angle in [0,15,30,45]:
+        fs = (7,7)
+        fig_distance,axes_distance = plt.subplots(2,2,num=0,figsize=fs)
+        fig_angle,axes_angle =plt.subplots(2,2,num=1,figsize=fs)
+        fig_area,axes_area = plt.subplots(2,2,num=2,figsize=fs)
+
+        limb_length_max = 0.001
+
+        for i,angle in enumerate([0,15,30,45]):
             projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
-            trange = TargetSectionDescription(-2,2,3000,-2,2,3000)
+            trange = TargetSectionDescription(-2,2,2000,-2,2,2000)
             extent = [trange.xmin,trange.xmax,trange.ymin,trange.ymax]
             rp = RasterProjector(projection,CosSinRasterDataProvider)
             grid = rp.build_grid(trange)
             #offset = np.stack([          np.ones((grid.shape[1],))*0.01,            np.ones((grid.shape[1],))*0],axis=0)
-            limb_length_max = 0.001
             offset = np.random.uniform(-limb_length_max/math.sqrt(2),limb_length_max/math.sqrt(2),grid.shape)
             offset_2 =  np.stack([offset[1,:],-offset[0,:] ],axis=0)
             #offset_2 = np.random.uniform(-0.01,0.01,grid.shape)
@@ -90,11 +96,11 @@ class CreateSampleImages(TestCase):
             ratio_e = np.expand_dims(ratio,axis=0)
             rsg = np.squeeze(rp.reshape_grid(ratio_e,trange,1),axis=-1)
             minv,maxv = rsg.min(),rsg.max()
-            plt.figure(figsize=(6,6))
-            plt.title("Distance ratio for cutoff angle "+ str(angle)+"°")
-            plt.imshow(rsg,norm=LogNorm(0.1,100,clip=True),extent=extent)
-            plt.colorbar()
-            plt.savefig('./distance-ratio-{}.pdf'.format(angle),dpi=600)
+            ax = axes_distance.flat[i]
+            ax.set_title("cutoff angle = {}°".format(angle))
+            im_distance = ax.imshow(rsg,norm=LogNorm(0.1,10,clip=True),extent=extent)
+
+
 
 
             delta1 = grid_offset- grid
@@ -107,12 +113,11 @@ class CreateSampleImages(TestCase):
             angles_projected = anglesBetween(delta1_projected,delta2_projected)
             angle_diff = np.degrees( np.abs(angles-angles_projected))
             angles_formatted = np.squeeze(rp.reshape_grid(angle_diff,trange,1),axis=-1)
-            plt.figure(figsize=(6,6))
-            plt.title("Angle difference for transformed right angles\nwith limb lengths under {}\nwith a cutoff angle of {}°".format(limb_length_max,angle))
-            plt.imshow(angles_formatted,norm=LogNorm(1e-13,30,clip=True),extent=extent)
-            clbar = plt.colorbar()
-            clbar.set_label("deviation in °")
-            plt.savefig('./angle-difference-{}.pdf'.format(angle),dpi=600)
+
+            ax = axes_angle.flat[i]
+            ax.set_title("cutoff angle = {}°".format(angle))
+            im_angle = ax.imshow(angles_formatted,norm=LogNorm(1e-13,30,clip=True),extent=extent)
+
 
 
 
@@ -120,13 +125,27 @@ class CreateSampleImages(TestCase):
             area_projected = triangleArea(grid_projected,grid_offset_projected,grid_offset_projected_2)
 
             area_ratio = np.squeeze(rp.reshape_grid(np.expand_dims(area/area_projected,axis=0),trange,1))
-            plt.figure(figsize=(6, 6))
-            plt.title("Area ratio for a cutoff angle of {}".format(angle))
-            plt.imshow(area_ratio,norm=LogNorm(0.01,10),extent=extent)
-            clbar = plt.colorbar()
-            clbar.set_label("Original area to projected area ratio")
-            plt.savefig('./area-ratio-{}.pdf'.format(angle),dpi = 600)
-            pass
+
+            ax = axes_area.flat[i]
+            ax.set_title( "cutoff angle = {}°".format(angle))
+            im_area = ax.imshow(area_ratio,norm=LogNorm(0.01,10),extent=extent)
 
 
 
+        plt.figure(fig_distance.number)
+        cbar = fig_distance.colorbar(im_distance,ax=axes_distance.tolist(),use_gridspec=True)
+        cbar.set_label("Ratio of distance on original plane to distance on projected plane")
+        fig_distance.suptitle("Distance ratio of transformed line segments with lengths of up to {}".format(limb_length_max))
+        plt.savefig('./distance.pdf')
+
+        plt.figure(fig_angle.number)
+        cbar = fig_angle.colorbar(im_angle,ax=axes_angle.ravel().tolist(),shrink=0.95)
+        cbar.set_label("Angle deviation in °")
+        fig_angle.suptitle("Angle difference for limb lengths of up to {}".format(limb_length_max))
+        plt.savefig('./angle.pdf')
+
+        plt.figure(fig_area.number)
+        cbar = fig_area.colorbar(im_area,ax=axes_area.ravel().tolist())
+        cbar.set_label("Area ratio")
+        fig_angle.suptitle("Area ratio between right angle triangles with limb lengths up to {}".format(limb_length_max))
+        plt.savefig('./area.pdf')
