@@ -76,11 +76,19 @@ def normalizeAngles(angles: np.ndarray) -> np.ndarray:
     angles[selection] -= 2 * math.pi
     return angles
 
+def length(vec:np.ndarray):
+    assertMultipleVec2d(vec)
+    return np.sqrt(np.sum(np.square(vec),axis=0,keepdims=True))
+
 def anglesBetween(vecs1:np.ndarray,vecs2:np.ndarray):
     assertMultipleVec2d(vecs1)
     assertMultipleVec2d(vecs2)
     assert vecs1.shape[1] == vecs2.shape[1] or vecs1.shape[1] ==1 or vecs2.shape[1]
 
+
+
+    vecs1 = vecs1 / length(vecs1)
+    vecs2 = vecs2 / length(vecs2)
     return np.arccos(np.sum(vecs1 * vecs2,axis=0,keepdims=True))
 
 def triangleArea(p1:np.ndarray,p2:np.ndarray,p3:np.ndarray):

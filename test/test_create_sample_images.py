@@ -34,8 +34,8 @@ class CreateSampleImages(TestCase):
             d_mapbox = Image.fromarray(projector_mapbox.project(trange))
 
             im = Image.alpha_composite(d_mapbox,d_trans)
-            filename = "sample-angle-" + str(angle)+".png"
-            im.save(filename)
+            filename = "sample-angle-" + str(angle)+".jpeg"
+            im.convert('RGB').save(filename,optimize=True)
             print(filename)
 
     def test_project_image_distances(self):
@@ -61,8 +61,8 @@ class CreateSampleImages(TestCase):
 
                 im = Image.alpha_composite(d_mapbox,d_trans)
                 dist = int(hamburg.distanceTo(to))
-                filename = "sample-distance-" + str(dist)+".png"
-                im.save(filename)
+                filename = "sample-distance-" + str(dist)+".jpeg"
+                im.convert('RGB').save(filename,optimize=True)
 
                 print("Finished " + filename + " with distance " + str(dist))
 
@@ -72,6 +72,7 @@ class CreateSampleImages(TestCase):
         fig_distance,axes_distance = plt.subplots(2,2,num=0,figsize=fs)
         fig_angle,axes_angle =plt.subplots(2,2,num=1,figsize=fs)
         fig_area,axes_area = plt.subplots(2,2,num=2,figsize=fs)
+        fig_direction, axes_direction = plt.subplots(2,2,num=3,figsize=fs)
 
         limb_length_max = 0.001
 
@@ -85,12 +86,16 @@ class CreateSampleImages(TestCase):
             offset = np.random.uniform(-limb_length_max/math.sqrt(2),limb_length_max/math.sqrt(2),grid.shape)
             offset_2 =  np.stack([offset[1,:],-offset[0,:] ],axis=0)
             #offset_2 = np.random.uniform(-0.01,0.01,grid.shape)
+            offset_up = np.stack([np.ones(grid.shape[1])*0,np.ones(grid.shape[1])*limb_length_max],axis=0)
+
             grid_offset = grid+ offset
             grid_offset_2 = grid + offset_2
+            grid_up = grid + offset_up
             euclid = euclideanDist(grid,grid_offset)
             grid_projected = projection(grid)
             grid_offset_projected = projection(grid_offset)
             grid_offset_projected_2 = projection(grid_offset_2)
+            grid_up_projected = projection(grid_up)
             projected_euclid = euclideanDist(grid_projected,grid_offset_projected)
             ratio = projected_euclid / euclid
             ratio_e = np.expand_dims(ratio,axis=0)
@@ -116,7 +121,7 @@ class CreateSampleImages(TestCase):
 
             ax = axes_angle.flat[i]
             ax.set_title("cutoff angle = {}°".format(angle))
-            im_angle = ax.imshow(angles_formatted,norm=LogNorm(1e-13,30,clip=True),extent=extent)
+            im_angle = ax.imshow(angles_formatted,norm=LogNorm(1e-5,180,clip=True),extent=extent)
 
 
 
@@ -132,6 +137,17 @@ class CreateSampleImages(TestCase):
 
 
 
+            delta_up = grid_up - grid
+            delta_projected_up = grid_up_projected - grid_projected
+            d_angle =  np.arctan2(delta_projected_up[1,:],delta_projected_up[0,:])
+            d_angle = np.abs(np.degrees(np.expand_dims(d_angle,axis=0)))
+            da_data = np.squeeze(rp.reshape_grid(d_angle,trange,1))
+
+            ax = axes_direction.flat[i]
+            ax.set_title("cutoff angle = {}°".format(angle))
+            im_direction = ax.imshow(da_data,norm=Normalize(0,180),extent=extent)
+
+
         plt.figure(fig_distance.number)
         cbar = fig_distance.colorbar(im_distance,ax=axes_distance.tolist(),use_gridspec=True)
         cbar.set_label("Ratio of distance on original plane to distance on projected plane")
@@ -140,12 +156,18 @@ class CreateSampleImages(TestCase):
 
         plt.figure(fig_angle.number)
         cbar = fig_angle.colorbar(im_angle,ax=axes_angle.ravel().tolist(),shrink=0.95)
-        cbar.set_label("Angle deviation in °")
-        fig_angle.suptitle("Angle difference for limb lengths of up to {}".format(limb_length_max))
+        cbar.set_label("Absolute angle deviation in °")
+        fig_angle.suptitle("Angle difference for right angle\ntriangles with leg lengths of up to {}".format(limb_length_max))
         plt.savefig('./angle.pdf')
 
         plt.figure(fig_area.number)
         cbar = fig_area.colorbar(im_area,ax=axes_area.ravel().tolist())
         cbar.set_label("Area ratio")
-        fig_angle.suptitle("Area ratio between right angle triangles with limb lengths up to {}".format(limb_length_max))
+        fig_area.suptitle("Area ratio for right angle\n triangles with leg lengths up to {}".format(limb_length_max))
         plt.savefig('./area.pdf')
+
+        plt.figure(fig_direction.number)
+        cbar = fig_direction.colorbar(im_direction,ax=axes_direction.ravel().tolist())
+        cbar.set_label("Absolute angle deviation in °")
+        fig_direction.suptitle("Direction change of an transformed up vector of length {}".format(limb_length_max))
+        plt.savefig('./direction.pdf')
