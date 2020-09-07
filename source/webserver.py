@@ -6,6 +6,9 @@ import math
 from flask import Flask, send_file, request, abort, Response, jsonify
 from flask_caching import  Cache
 import logging
+
+from flask_cors import CORS, cross_origin
+
 from source.complex_log_projection import ComplexLogProjection
 from source.lat_lng import LatLng
 from source.raster_data.abstract_raster_data_provider import AbstractRasterDataProvider
@@ -22,7 +25,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 app.config.from_mapping(build_cache_config())
 cache = Cache(app)
-
+CORS(app)
 
 from source.hard_coded_providers import get_providers
 
@@ -103,8 +106,6 @@ def resolve(lat1, lng1, lat2, lng2, cutoff, smoothing, clickLat, clickLng):
     xy = np.array([[x], [y]])
     latlng_data = proj.invert(xy)
 
-    ad = {}
-    ad.update(parse_angle(request.args))
 
     assert latlng_data.shape == (2, 1)
     ret_data = {"lat": latlng_data[0, 0], "lng": latlng_data[1, 0]}
@@ -117,6 +118,43 @@ def resolve(lat1, lng1, lat2, lng2, cutoff, smoothing, clickLat, clickLng):
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
+
+
+@app.route(
+    "/from_leaflet/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>.json",methods=['POST', 'GET'])
+@cross_origin(origin='*',headers=['access-control-allow-origin','Content-Type'])
+def from_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
+
+    if request.method != "POST":
+        return ""
+
+    json_i = request.get_json(force=True)
+    if json_i is None:
+        return "Could not parse JSON",500
+
+
+
+    proj = ComplexLogProjection(LatLng(lat1, lng1), LatLng(lat2, lng2), math.radians(cutoff),
+                                smoothing_function_type=parse_smoothing(smoothing))
+
+    elements =  json_i['data']
+    ret_v = []
+    for e in elements:
+        x, y = tiling.from_leaflet_LatLng(LatLng(e['lat'], e['lng']))
+        xy = np.array([[x], [y]])
+        latlng_data = proj.invert(xy)
+        assert latlng_data.shape == (2, 1)
+        ret_element = {"lat": latlng_data[0, 0], "lng": latlng_data[1, 0]}
+        ret_v.append(ret_element)
+    response = app.response_class(
+        response=json.dumps({"data":ret_v}),
+        status=200,
+        mimetype='application/json'
+    )
+
+    return response
+
 
 @app.route("/providers")
 def fetch_providers():
@@ -194,6 +232,6 @@ def test():
 
 def add_cors_headers(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Headers', '*')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
