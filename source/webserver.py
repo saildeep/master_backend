@@ -179,11 +179,11 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     for e in elements:
         xy = np.array([[e['lat']], [e['lng']]])
         xy = proj(xy)
-
+        z = proj.getZoomLevel(xy,1)
         latlng = tiling.to_leaflet_LatLng(xy[0,0],xy[1,0])
 
 
-        ret_element = {"lat": latlng.lat, "lng": latlng.lng}
+        ret_element = {"lat": latlng.lat, "lng": latlng.lng,"z":z[0]}
         ret_v.append(ret_element)
     response = app.response_class(
         response=json.dumps({"data":ret_v}),

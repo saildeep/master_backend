@@ -40,7 +40,9 @@ class FlatTiling():
         return x, y
 
     def to_leaflet_LatLng(self,x,y)->LatLng:
-       
+
         x = (x + self.top_level_range) / (2* self.top_level_range)
         y = (y+self.top_level_range) / (2*self.top_level_range)
+        assert 0 <= x <= 1
+        assert 0 <= y <= 1
         return XYToLatLng(x,y)
