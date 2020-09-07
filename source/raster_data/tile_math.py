@@ -41,6 +41,13 @@ class OSMTile:
         return OSMTile(self.x, self.y, self.zoom)
 
 
+def XYToLatLng(x:float,y:float,zoom = 0)->LatLng:
+    n = 2 ** zoom
+    lng_deg = x / float(n) * 360.0 -180
+    lat_rad = math.atan(math.sinh(math.pi*(1-2*y/float(n))))
+    lat_deg = lat_rad * 180.0 / math.pi
+    return LatLng(lat_deg,lng_deg)
+
 def latlngToXY(latlng: LatLng, zoom: int, ref: List[float]) -> List[float]:
     lat_deg = latlng.lat
     lon_deg = latlng.lng

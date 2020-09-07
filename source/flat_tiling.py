@@ -5,7 +5,7 @@ Also has some tricks for leaflet coordinate calculations
 from typing import Tuple
 
 from source.lat_lng import LatLng
-from source.raster_data.tile_math import latlngToXY
+from source.raster_data.tile_math import latlngToXY, XYToLatLng
 
 
 class FlatTiling():
@@ -38,3 +38,9 @@ class FlatTiling():
         x = (x * 2 * self.top_level_range) - self.top_level_range
         y = (y * 2 * self.top_level_range) - self.top_level_range
         return x, y
+
+    def to_leaflet_LatLng(self,x,y)->LatLng:
+       
+        x = (x + self.top_level_range) / (2* self.top_level_range)
+        y = (y+self.top_level_range) / (2*self.top_level_range)
+        return XYToLatLng(x,y)

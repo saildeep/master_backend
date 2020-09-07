@@ -156,6 +156,43 @@ def from_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     return response
 
 
+@app.route(
+    "/to_leaflet/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>.json",methods=['POST', 'GET'])
+@cross_origin(origin='*',headers=['access-control-allow-origin','Content-Type'])
+def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
+
+    if request.method != "POST":
+        return ""
+
+    json_i = request.get_json(force=True)
+    if json_i is None:
+        return "Could not parse JSON",500
+
+
+
+    proj = ComplexLogProjection(LatLng(lat1, lng1), LatLng(lat2, lng2), math.radians(cutoff),
+                                smoothing_function_type=parse_smoothing(smoothing))
+
+    elements =  json_i['data']
+    ret_v = []
+    for e in elements:
+        xy = np.array([[e['lat']], [e['lng']]])
+        xy = proj(xy)
+
+        latlng = tiling.to_leaflet_LatLng(xy[0,0],xy[1,0])
+
+
+        ret_element = {"lat": latlng.lat, "lng": latlng.lng}
+        ret_v.append(ret_element)
+    response = app.response_class(
+        response=json.dumps({"data":ret_v}),
+        status=200,
+        mimetype='application/json'
+    )
+
+    return response
+
 @app.route("/providers")
 def fetch_providers():
     p = get_providers()
