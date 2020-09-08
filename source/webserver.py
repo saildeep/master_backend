@@ -170,16 +170,20 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
         return "Could not parse JSON",500
 
 
+    c1latlng = LatLng(lat1, lng1)
+    c2latlng = LatLng(lat2, lng2)
 
-    proj = ComplexLogProjection(LatLng(lat1, lng1), LatLng(lat2, lng2), math.radians(cutoff),
+    proj = ComplexLogProjection(c1latlng,c2latlng , math.radians(cutoff),
                                 smoothing_function_type=parse_smoothing(smoothing))
 
+    center_distance = c1latlng.distanceTo(c2latlng)
+    pixel_per_km =  1/center_distance
     elements =  json_i['data']
     ret_v = []
     for e in elements:
         xy = np.array([[e['lat']], [e['lng']]])
         xy = proj(xy)
-        z = proj.getZoomLevel(xy,1)
+        z = proj.getZoomLevel(xy,pixel_per_km)
         latlng = tiling.to_leaflet_LatLng(xy[0,0],xy[1,0])
 
 
