@@ -177,21 +177,25 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
                                 smoothing_function_type=parse_smoothing(smoothing))
 
     center_distance = c1latlng.distanceTo(c2latlng)
-    pixel_per_km =  1/center_distance
+    pixel_per_m =  256.0/(156412.0)
     elements =  json_i['data']
     ret_v = []
     for e in elements:
         xy = np.array([[e['lat']], [e['lng']]])
         xy,clipping = proj(xy,calculate_clipping=True)
-        z = proj.getZoomLevel(xy,pixel_per_km)
+        z = proj.getZoomLevel(xy,pixel_per_m)
         latlng = tiling.to_leaflet_LatLng(xy[0,0],xy[1,0])
 
         clipping = bool(clipping[0])
 
         ret_element = {"lat": latlng.lat, "lng": latlng.lng,"z":z[0],"clipped":clipping}
         ret_v.append(ret_element)
+
+    z_values = list(map(lambda x:x["z"],ret_v))
+    min_z = min(*z_values)
+    max_z = max(*z_values)
     response = app.response_class(
-        response=json.dumps({"data":ret_v}),
+        response=json.dumps({"data":ret_v,"min_z":min_z,"max_z":max_z}),
         status=200,
         mimetype='application/json'
     )
