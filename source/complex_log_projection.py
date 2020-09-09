@@ -1,3 +1,5 @@
+from typing import Union, Tuple
+
 import numpy as np
 import math
 
@@ -36,7 +38,7 @@ class ComplexLogProjection(ZoomableProjection):
 
         self.smoothing_function: AbstractSmoothingFunction = smoothing_function_type(smoothing_angle_radians)
 
-    def __call__(self, latlng: np.ndarray) -> np.ndarray:
+    def __call__(self, latlng: np.ndarray,calculate_clipping=False) -> Union[np.ndarray,Tuple[np.ndarray,np.ndarray]] :
         assertMultipleVec2d(latlng)
         projected = self.preprojection(latlng)
         dist_c1 = euclideanDistSquared(projected, self.center1)
@@ -53,7 +55,16 @@ class ComplexLogProjection(ZoomableProjection):
 
         projected[:, selection_c1] = projected_c1
         projected[:, selection_c2] = projected_c2
-        return projected
+
+        if not calculate_clipping:
+            return projected
+
+        clipping_c1 = projected_c1[0,:]>0
+        clipping_c2 = projected_c2[0,:]<0
+        clipping = np.full((latlng.shape[1]),False)
+        clipping[selection_c1] = clipping_c1
+        clipping[selection_c2] = clipping_c2
+        return projected,clipping
 
     def invert(self, xy: np.ndarray):
         assertMultipleVec2d(xy)

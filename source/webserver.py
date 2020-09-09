@@ -159,7 +159,7 @@ def from_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
 @app.route(
     "/to_leaflet/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>.json",methods=['POST', 'GET'])
-@cross_origin(origin='*',headers=['access-control-allow-origin','Content-Type'])
+@cross_origin()
 def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
 
     if request.method != "POST":
@@ -182,12 +182,13 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     ret_v = []
     for e in elements:
         xy = np.array([[e['lat']], [e['lng']]])
-        xy = proj(xy)
+        xy,clipping = proj(xy,calculate_clipping=True)
         z = proj.getZoomLevel(xy,pixel_per_km)
         latlng = tiling.to_leaflet_LatLng(xy[0,0],xy[1,0])
 
+        clipping = bool(clipping[0])
 
-        ret_element = {"lat": latlng.lat, "lng": latlng.lng,"z":z[0]}
+        ret_element = {"lat": latlng.lat, "lng": latlng.lng,"z":z[0],"clipped":clipping}
         ret_v.append(ret_element)
     response = app.response_class(
         response=json.dumps({"data":ret_v}),
