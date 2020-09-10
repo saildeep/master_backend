@@ -12,14 +12,22 @@ from source.lat_lng import LatLng
 
 class AbstractPreprojection(abc.ABC):
 
+    def __init__(self):
+        self.set_center(LatLng(0,0))
+
+    def set_center(self, center: LatLng):
+        self.offset_x_radians = -math.radians(center.lat)
+        self.offset_y_radians = -math.radians(center.lng)
+        self.offset = np.array([[self.offset_x_radians],[self.offset_y_radians]])
+
     def __call__(self, latlng: np.ndarray) -> np.ndarray:
         mathutils.assertMultipleVec2d(latlng)
-        return mathutils.assertMultipleVec2d(self._forward(np.deg2rad(latlng)))
+        return mathutils.assertMultipleVec2d(self._forward(np.deg2rad(latlng)+self.offset))
 
     def invert(self, xy: np.ndarray) -> np.ndarray:
         mathutils.assertMultipleVec2d(xy)
         return mathutils.assertMultipleVec2d(
-            np.rad2deg(self._backward(xy))
+            np.rad2deg(self._backward(xy)-self.offset)
         )
 
     @abc.abstractmethod
@@ -30,8 +38,7 @@ class AbstractPreprojection(abc.ABC):
     def _backward(self, xy: np.ndarray) -> np.ndarray:
         pass
 
-    def set_center(self,latlng:LatLng):
-        pass
+
 
 class IdentityPreprojection(AbstractPreprojection):
 
@@ -46,18 +53,12 @@ class IdentityPreprojection(AbstractPreprojection):
 class AbstractAzimutalProject(AbstractPreprojection):
 
 
-    def __init__(self):
-        self.offset_x_radians = 0
-        self.offset_y_radians = 0
 
-    def set_center(self,center:LatLng):
-        self.offset_x_radians = -math.radians(center.lat)
-        self.offset_y_radians = -math.radians(center.lng)
 
 
     def _forward(self, latlng_radians: np.ndarray) -> np.ndarray:
-        x = latlng_radians[0, :] + self.offset_x_radians
-        y = latlng_radians[1, :] + self.offset_y_radians
+        x = latlng_radians[0, :]
+        y = latlng_radians[1, :]
         cx = np.cos(latlng_radians[0, :])
         cy = np.cos(latlng_radians[1, :])
         k = self._scale(cx * cy)
@@ -73,7 +74,7 @@ class AbstractAzimutalProject(AbstractPreprojection):
         res_lng = np.divide(y * sc, z, where=z != 0)
         res_lng[z == 0] = 0
         return np.stack([
-            np.arctan2(x * sc, z * cc) - self.offset_x_radians, np.arcsin(res_lng) - self.offset_y_radians], axis=0)
+            np.arctan2(x * sc, z * cc) , np.arcsin(res_lng)], axis=0)
 
     @abc.abstractmethod
     def _scale(self, cxcy: np.ndarray) -> np.ndarray:
