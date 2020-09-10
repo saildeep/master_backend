@@ -48,6 +48,11 @@ class IdentityPreprojection(AbstractPreprojection):
     def _backward(self, xy: np.ndarray) -> np.ndarray:
         return xy
 
+    def set_center(self, center: LatLng):
+        self.offset_x_radians = 0
+        self.offset_y_radians = 0
+        self.offset = np.array([[self.offset_x_radians], [self.offset_y_radians]])
+
 
 # implementation according to https://github.com/d3/d3-geo/blob/master/src/projection/azimuthal.js
 class AbstractAzimutalProject(AbstractPreprojection):
