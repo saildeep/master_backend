@@ -29,3 +29,8 @@ class LatLng():
 
         return d
 
+
+
+    def approxMidpoint(self,other):
+        return LatLng((self.lat + other.lat)*.5,(self.lng + other.lng) * .5 )
+

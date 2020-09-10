@@ -26,6 +26,7 @@ class ComplexLogProjection(ZoomableProjection):
                  preprojection: AbstractPreprojection = LambertAzimuthalEqualArea(),
                  smoothing_function_type: AbstractSmoothingFunction.__class__ = NoSmoothingFunction):
         self.preprojection: AbstractPreprojection = preprojection  # is not centered around the center point
+        self.preprojection.set_center(center1.approxMidpoint(center2))
         self.center1: np.ndarray = preprojection(np.array([[center1.lat], [center1.lng]]))
         self.center2: np.ndarray = preprojection(np.array([[center2.lat], [center2.lng]]))
         self.smoothing_angle: float = smoothing_angle_radians
