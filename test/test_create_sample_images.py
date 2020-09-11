@@ -38,6 +38,28 @@ class CreateSampleImages(TestCase):
             im.convert('RGB').save(filename,optimize=True)
             print(filename)
 
+    def test_project_ch(self):
+        prov = get_providers()
+        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 4000, -math.pi/2, math.pi/2, 1000)
+        #frankfurt_a_m = LatLng(50.115822, 8.702537)
+        stuttgart = LatLng(48.783810,9.180071)
+
+        fn = LatLng(47.652839, 9.472735)  #
+        for angle in [0,15,30,45]:
+
+            projection = ComplexLogProjection(stuttgart, fn, math.radians(angle),
+                                              smoothing_function_type=DualCosSmoothingFunction)
+            projector_transparent = RasterProjector(projection, prov['ch'])
+            projector_mapbox = RasterProjector(projection, prov['mapbox'])
+
+            d_trans =  Image.fromarray(projector_transparent.project(trange))
+            d_mapbox = Image.fromarray(projector_mapbox.project(trange))
+
+            im = Image.alpha_composite(d_mapbox,d_trans)
+            filename = "sample-ch-angle-" + str(angle)+".jpeg"
+            im.convert('RGB').save(filename,optimize=True)
+            print(filename)
+
     def test_project_image_distances(self):
             prov = get_providers()
             trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 4000, -math.pi, math.pi, 2000)
