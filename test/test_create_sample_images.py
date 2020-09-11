@@ -40,7 +40,7 @@ class CreateSampleImages(TestCase):
 
     def test_project_ch(self):
         prov = get_providers()
-        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 4000, -math.pi/2, math.pi/2, 1000)
+        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 4000, -math.pi, math.pi, 2000)
         #frankfurt_a_m = LatLng(50.115822, 8.702537)
         stuttgart = LatLng(48.783810,9.180071)
 
