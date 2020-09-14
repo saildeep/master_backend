@@ -181,21 +181,21 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     elements =  json_i['data']
     ret_v = []
     for e in elements:
-        xy = np.array([[e['lat']], [e['lng']]])
+        xy = np.array([[e[0]], [e[0]]])
         xy,clipping = proj(xy,calculate_clipping=True)
         z = proj.getZoomLevel(xy,pixel_per_m)
         latlng = tiling.to_leaflet_LatLng(xy[0,0],xy[1,0])
 
         clipping = bool(clipping[0])
 
-        ret_element = {"lat": round(latlng.lat,precision), "lng": round(latlng.lng,precision),"z":round(z[0],precision),"clipped":clipping}
+        ret_element = [ round(latlng.lat,precision), round(latlng.lng,precision),round(z[0],precision),clipping]
         ret_v.append(ret_element)
 
-    z_values = list(map(lambda x:x["z"],ret_v))
+    z_values = list(map(lambda x:x[2],ret_v))
     min_z = min(*z_values)
     max_z = max(*z_values)
     response = app.response_class(
-        response=json.dumps({"data":ret_v,"min_z":min_z,"max_z":max_z}),
+        response=json.dumps({"data":ret_v,"min_z":min_z,"max_z":max_z},check_circular=False,indent=None),
         status=200,
         mimetype='application/json'
     )
