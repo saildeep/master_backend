@@ -169,7 +169,7 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     if json_i is None:
         return "Could not parse JSON",500
 
-
+    precision = int(request.args.get("precision",5)) # number of digits
     c1latlng = LatLng(lat1, lng1)
     c2latlng = LatLng(lat2, lng2)
 
@@ -188,7 +188,7 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
 
         clipping = bool(clipping[0])
 
-        ret_element = {"lat": latlng.lat, "lng": latlng.lng,"z":z[0],"clipped":clipping}
+        ret_element = {"lat": round(latlng.lat,precision), "lng": round(latlng.lng,precision),"z":round(z[0],precision),"clipped":clipping}
         ret_v.append(ret_element)
 
     z_values = list(map(lambda x:x["z"],ret_v))
