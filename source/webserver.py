@@ -1,4 +1,5 @@
 import json
+import os
 from io import BytesIO
 from typing import Dict, Type
 
@@ -201,7 +202,7 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     )
 
     return response
-cities_path = "./cities.json"
+cities_path = os.path.join(os.path.dirname(__file__),'..',"cities.json")
 with open(cities_path,'rb') as f:
     cities_parsed = json.load(f)
 cities_static_string = json.dumps(cities_parsed,check_circular=False)
