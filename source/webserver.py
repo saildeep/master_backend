@@ -201,6 +201,64 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     )
 
     return response
+cities_path = "./cities.json"
+with open(cities_path,'rb') as f:
+    cities_parsed = json.load(f)
+cities_static_string = json.dumps(cities_parsed,check_circular=False)
+@app.route('/cities.json',methods=["GET"])
+def cities():
+    return app.response_class(
+        response=cities_static_string,
+        status=200,
+        mimetype='application/json'
+    )
+
+
+
+
+cities_lat_lng = np.array(list(map(lambda e:[e['lat'],e['lon']],cities_parsed['elements']))).transpose()
+@app.route(
+    "/cities_projected/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
+    "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>.json",methods=['POST', 'GET'])
+@cross_origin()
+@cache.cached(timeout=60*60*24*7,key_prefix=make_url_cache_key)
+def cities_projected(lat1, lng1, lat2, lng2, cutoff, smoothing):
+
+
+
+
+    precision = int(request.args.get("precision",5)) # number of digits
+    c1latlng = LatLng(lat1, lng1)
+    c2latlng = LatLng(lat2, lng2)
+
+    proj = ComplexLogProjection(c1latlng,c2latlng , math.radians(cutoff),
+                                smoothing_function_type=parse_smoothing(smoothing))
+
+    center_distance = c1latlng.distanceTo(c2latlng)
+    pixel_per_m =  256.0/(156412.0)
+    elements =  cities_parsed['elements']
+    ret_v = []
+    xy,clipping = proj(cities_lat_lng,calculate_clipping=True)
+    z = proj.getZoomLevel(xy, pixel_per_m)
+    for i in range(len(elements)):
+
+
+        latlng = tiling.to_leaflet_LatLng(xy[0,i],xy[1,i])
+
+        clipping_v = bool(clipping[i])
+
+        ret_element = [ round(latlng.lat,precision), round(latlng.lng,precision),round(z[i],precision),clipping_v]
+        ret_v.append(ret_element)
+
+    z_values = list(map(lambda x:x[2],ret_v))
+    min_z = min(*z_values)
+    max_z = max(*z_values)
+    response = app.response_class(
+        response=json.dumps({"data":ret_v,"min_z":min_z,"max_z":max_z},check_circular=False,indent=None),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 @app.route("/providers")
 def fetch_providers():
