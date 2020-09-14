@@ -222,7 +222,6 @@ cities_lat_lng = np.array(list(map(lambda e:[e['lat'],e['lon']],cities_parsed['e
     "/cities_projected/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>.json",methods=['POST', 'GET'])
 @cross_origin()
-@cache.cached(timeout=60*60*24*7,key_prefix=make_url_cache_key)
 def cities_projected(lat1, lng1, lat2, lng2, cutoff, smoothing):
 
 
