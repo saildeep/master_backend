@@ -258,30 +258,37 @@ def cities_projected(lat1, lng1, lat2, lng2, cutoff, smoothing):
         center_distance = c1latlng.distanceTo(c2latlng)
         pixel_per_m =  256.0/(156412.0)
         elements =  cities_parsed['elements']
-        ret_v = [None]* len(elements)
+
     with t.time("projection"):
         xy,clipping = proj(cities_lat_lng,calculate_clipping=True)
     with t.time("zoomlevel"):
         z = proj.getZoomLevel(xy, pixel_per_m)
-    with t.time("packaging"):
+    with t.time("tiling"):
+        latlngs = [None] * len(elements)
         for i in range(len(elements)):
 
-
             latlng = tiling.to_leaflet_LatLng(xy[0,i],xy[1,i])
-
+            latlngs[i]=latlng
+    with t.time("packaging"):
+        ret_v = [None] * len(elements)
+        p_x_int = 10**precision
+        p_x_float = 10.**precision
+        my_round = lambda x:int(x*(p_x_int))/(p_x_float)
+        for i in range(len(elements)):
             clipping_v = bool(clipping[i])
-
-            ret_element = ( round(latlng.lat,precision), round(latlng.lng,precision),round(z[i],precision),clipping_v)
+            latlng = latlngs[i]
+            ret_element = [ my_round(latlng.lat), my_round(latlng.lng),my_round(z[i]),clipping_v]
             ret_v[i] =ret_element
 
-    z_values = list(map(lambda x:x[2],ret_v))
-    min_z = min(*z_values)
-    max_z = max(*z_values)
-    response = app.response_class(
-        response=json.dumps({"data":ret_v,"min_z":min_z,"max_z":max_z},check_circular=False,indent=None),
-        status=200,
-        mimetype='application/json'
-    )
+    with t.time("assembly"):
+        z_values = list(map(lambda x:x[2],ret_v))
+        min_z = min(*z_values)
+        max_z = max(*z_values)
+        response = app.response_class(
+            response=json.dumps({"data":ret_v,"min_z":min_z,"max_z":max_z},check_circular=False,indent=None),
+            status=200,
+            mimetype='application/json'
+        )
     return response
 
 @app.route("/providers")
