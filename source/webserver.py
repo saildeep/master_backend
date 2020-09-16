@@ -20,6 +20,7 @@ from source.smoothing_functions import CosCutoffSmoothingFunction, AbstractSmoot
 from source.raster_data.tile_resolver import  TileURLResolver
 from PIL import Image
 from source.flat_tiling import FlatTiling
+from server_timing import Timing
 import numpy as np
 
 app = Flask(__name__)
@@ -27,6 +28,7 @@ logging.basicConfig(level=logging.INFO)
 app.config.from_mapping(build_cache_config())
 cache = Cache(app)
 CORS(app)
+t = Timing(app,force_debug=True)
 
 from source.hard_coded_providers import get_providers
 
@@ -240,29 +242,32 @@ def cities_projected(lat1, lng1, lat2, lng2, cutoff, smoothing):
 
 
 
+    with t.time("parsing_params"):
+        precision = int(request.args.get("precision",5)) # number of digits
+        c1latlng = LatLng(lat1, lng1)
+        c2latlng = LatLng(lat2, lng2)
 
-    precision = int(request.args.get("precision",5)) # number of digits
-    c1latlng = LatLng(lat1, lng1)
-    c2latlng = LatLng(lat2, lng2)
+        proj = ComplexLogProjection(c1latlng,c2latlng , math.radians(cutoff),
+                                    smoothing_function_type=parse_smoothing(smoothing))
 
-    proj = ComplexLogProjection(c1latlng,c2latlng , math.radians(cutoff),
-                                smoothing_function_type=parse_smoothing(smoothing))
+        center_distance = c1latlng.distanceTo(c2latlng)
+        pixel_per_m =  256.0/(156412.0)
+        elements =  cities_parsed['elements']
+        ret_v = [None]* len(elements)
+    with t.time("projection"):
+        xy,clipping = proj(cities_lat_lng,calculate_clipping=True)
+    with t.time("zoomlevel"):
+        z = proj.getZoomLevel(xy, pixel_per_m)
+    with t.time("packaging"):
+        for i in range(len(elements)):
 
-    center_distance = c1latlng.distanceTo(c2latlng)
-    pixel_per_m =  256.0/(156412.0)
-    elements =  cities_parsed['elements']
-    ret_v = []
-    xy,clipping = proj(cities_lat_lng,calculate_clipping=True)
-    z = proj.getZoomLevel(xy, pixel_per_m)
-    for i in range(len(elements)):
 
+            latlng = tiling.to_leaflet_LatLng(xy[0,i],xy[1,i])
 
-        latlng = tiling.to_leaflet_LatLng(xy[0,i],xy[1,i])
+            clipping_v = bool(clipping[i])
 
-        clipping_v = bool(clipping[i])
-
-        ret_element = [ round(latlng.lat,precision), round(latlng.lng,precision),round(z[i],precision),clipping_v]
-        ret_v.append(ret_element)
+            ret_element = ( round(latlng.lat,precision), round(latlng.lng,precision),round(z[i],precision),clipping_v)
+            ret_v[i] =ret_element
 
     z_values = list(map(lambda x:x[2],ret_v))
     min_z = min(*z_values)
