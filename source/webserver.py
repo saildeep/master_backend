@@ -208,26 +208,40 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
     )
 
     return response
-cities_path = os.path.join(os.path.dirname(__file__),'..',"cities.json")
-with open(cities_path,'rb') as f:
-    cities_parsed = json.load(f)
 
-named_cities = list(filter(lambda x:"name" in x['tags'],cities_parsed['elements']))
+def get_cities():
 
-cities_parsed['elements'] = list(map(lambda x:{
-    "lat":x['lat'],
-    "lon":x['lon'],
-    "type":x['type'],
-    "tags":{
-        "name":x["tags"]["name"],
-        "population":x['tags'].get("population",0),
-        "place":x['tags']['place']
-    }
-},named_cities))
-cities_static_string = json.dumps(cities_parsed,check_circular=False)
+    cities_cache_key = "cities_cache_key"
+
+    cached_v = cache.get(cities_cache_key)
+    if cached_v is not None:
+        return json.loads(cached_v)
+
+    cities_path = os.path.join(os.path.dirname(__file__),'..',"cities.json")
+    with open(cities_path,'rb') as f:
+        cities_parsed = json.load(f)
+
+    named_cities = list(filter(lambda x:"name" in x['tags'],cities_parsed['elements']))
+
+    cities_parsed['elements'] = list(map(lambda x:{
+        "lat":x['lat'],
+        "lon":x['lon'],
+        "type":x['type'],
+        "tags":{
+            "name":x["tags"]["name"],
+            "population":x['tags'].get("population",0),
+            "place":x['tags']['place']
+        }
+    },named_cities))
+
+    cache.set(cities_cache_key,json.dumps(cities_parsed))
+    return cities_parsed
+
 
 @app.route('/cities.json',methods=["GET"])
+@cache.cached(timeout=60*60)
 def cities():
+    cities_static_string = json.dumps(get_cities(), check_circular=False)
     return app.response_class(
         response=cities_static_string,
         status=200,
@@ -237,7 +251,7 @@ def cities():
 
 
 
-cities_lat_lng = np.array(list(map(lambda e:[e['lat'],e['lon']],cities_parsed['elements']))).transpose()
+cities_lat_lng = np.array(list(map(lambda e:[e['lat'],e['lon']],get_cities()['elements']))).transpose()
 @app.route(
     "/cities_projected/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>.json",methods=['POST', 'GET'])
@@ -257,24 +271,24 @@ def cities_projected(lat1, lng1, lat2, lng2, cutoff, smoothing):
 
         center_distance = c1latlng.distanceTo(c2latlng)
         pixel_per_m =  256.0/(156412.0)
-        elements =  cities_parsed['elements']
+        num_cities = cities_lat_lng.shape[1]
 
     with t.time("projection"):
         xy,clipping = proj(cities_lat_lng,calculate_clipping=True)
     with t.time("zoomlevel"):
         z = proj.getZoomLevel(xy, pixel_per_m)
     with t.time("tiling"):
-        latlngs = [None] * len(elements)
-        for i in range(len(elements)):
+        latlngs = [None] * num_cities
+        for i in range(num_cities):
 
             latlng = tiling.to_leaflet_LatLng(xy[0,i],xy[1,i])
             latlngs[i]=latlng
     with t.time("packaging"):
-        ret_v = [None] * len(elements)
+        ret_v = [None] * num_cities
         p_x_int = 10**precision
         p_x_float = 10.**precision
         my_round = lambda x:int(x*(p_x_int))/(p_x_float)
-        for i in range(len(elements)):
+        for i in range(num_cities):
             clipping_v = bool(clipping[i])
             latlng = latlngs[i]
             ret_element = [ my_round(latlng.lat), my_round(latlng.lng),my_round(z[i]),clipping_v]
