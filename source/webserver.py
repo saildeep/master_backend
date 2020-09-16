@@ -212,29 +212,31 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
 def get_cities():
 
     cities_cache_key = "cities_cache_key"
-
-    cached_v = cache.get(cities_cache_key)
+    with t.time("checking_cities_cache"):
+        cached_v = cache.get(cities_cache_key)
     if cached_v is not None:
-        return json.loads(cached_v)
+        with t.time("loading_cities_cache"):
+            return cached_v
 
-    cities_path = os.path.join(os.path.dirname(__file__),'..',"cities.json")
-    with open(cities_path,'rb') as f:
-        cities_parsed = json.load(f)
+    with t.time("loading_cities_from_file"):
+        cities_path = os.path.join(os.path.dirname(__file__),'..',"cities.json")
+        with open(cities_path,'rb') as f:
+            cities_parsed = json.load(f)
 
-    named_cities = list(filter(lambda x:"name" in x['tags'],cities_parsed['elements']))
+        named_cities = list(filter(lambda x:"name" in x['tags'],cities_parsed['elements']))
 
-    cities_parsed['elements'] = list(map(lambda x:{
-        "lat":x['lat'],
-        "lon":x['lon'],
-        "type":x['type'],
-        "tags":{
-            "name":x["tags"]["name"],
-            "population":x['tags'].get("population",0),
-            "place":x['tags']['place']
-        }
-    },named_cities))
-
-    cache.set(cities_cache_key,json.dumps(cities_parsed))
+        cities_parsed['elements'] = list(map(lambda x:{
+            "lat":x['lat'],
+            "lon":x['lon'],
+            "type":x['type'],
+            "tags":{
+                "name":x["tags"]["name"],
+                "population":x['tags'].get("population",0),
+                "place":x['tags']['place']
+            }
+        },named_cities))
+    with t.time("writing_cities_to_cache"):
+        cache.set(cities_cache_key,cities_parsed)
     return cities_parsed
 
 
@@ -251,7 +253,7 @@ def cities():
 
 
 
-cities_lat_lng = np.array(list(map(lambda e:[e['lat'],e['lon']],get_cities()['elements']))).transpose()
+
 @app.route(
     "/cities_projected/lat1/<float(signed=True):lat1>/lng1/<float(signed=True):lng1>/" +
     "lat2/<float(signed=True):lat2>/lng2/<float(signed=True):lng2>/cutoff/<float:cutoff>/smoothing/<smoothing>.json",methods=['POST', 'GET'])
@@ -259,8 +261,8 @@ cities_lat_lng = np.array(list(map(lambda e:[e['lat'],e['lon']],get_cities()['el
 @cache.cached(timeout=60*60*24,key_prefix=make_url_cache_key)
 def cities_projected(lat1, lng1, lat2, lng2, cutoff, smoothing):
 
-
-
+    with t.time("loading_cities_lat_lng"):
+        cities_lat_lng = np.array(list(map(lambda e: [e['lat'], e['lon']], get_cities()['elements']))).transpose()
     with t.time("parsing_params"):
         precision = int(request.args.get("precision",5)) # number of digits
         c1latlng = LatLng(lat1, lng1)
