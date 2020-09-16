@@ -42,18 +42,22 @@ def do_projection(lat1, lng1, lat2, lng2, data_source: AbstractRasterDataProvide
                   smoothing=CosCutoffSmoothingFunction,
                   fileformat='png'
                   ):
-    trange = TargetSectionDescription(xmin, xmax, pixel_width, ymin, ymax, pixel_height)
-    c1 = LatLng(lat1, lng1)
-    c2 = LatLng(lat2, lng2)
-    proj = ComplexLogProjection(c1, c2, cutoff,
-                                smoothing_function_type=smoothing)
-    projector = RasterProjector(proj, data_source)
+    with t.time("setup"):
+        trange = TargetSectionDescription(xmin, xmax, pixel_width, ymin, ymax, pixel_height)
+        c1 = LatLng(lat1, lng1)
+        c2 = LatLng(lat2, lng2)
+        proj = ComplexLogProjection(c1, c2, cutoff,
+                                    smoothing_function_type=smoothing)
+        projector = RasterProjector(proj, data_source)
 
-    d = projector.project(trange)
-    pilim = Image.fromarray(d)
-    img_io = BytesIO()
-    pilim.save(img_io,fileformat)
-    img_io.seek(0)
+    with t.time("projection"):
+        d = projector.project(trange)
+    with t.time("parse_result"):
+        pilim = Image.fromarray(d)
+    with t.time("convert_to_format"):
+        img_io = BytesIO()
+        pilim.save(img_io,fileformat)
+        img_io.seek(0)
     return send_file(img_io, mimetype='image/'+fileformat)
 
 
