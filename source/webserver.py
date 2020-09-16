@@ -205,7 +205,21 @@ def to_leaflet(lat1, lng1, lat2, lng2, cutoff, smoothing):
 cities_path = os.path.join(os.path.dirname(__file__),'..',"cities.json")
 with open(cities_path,'rb') as f:
     cities_parsed = json.load(f)
+
+named_cities = list(filter(lambda x:"name" in x['tags'],cities_parsed['elements']))
+
+cities_parsed['elements'] = list(map(lambda x:{
+    "lat":x['lat'],
+    "lon":x['lon'],
+    "type":x['type'],
+    "tags":{
+        "name":x["tags"]["name"],
+        "population":x['tags'].get("population",0),
+        "place":x['tags']['place']
+    }
+},named_cities))
 cities_static_string = json.dumps(cities_parsed,check_circular=False)
+
 @app.route('/cities.json',methods=["GET"])
 def cities():
     return app.response_class(
