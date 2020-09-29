@@ -90,7 +90,7 @@ class CreateSampleImages(TestCase):
 
     def test_distance_scaling(self):
 
-        fs = (16,4)
+        fs = (12,3)
         gridspec = {'width_ratios': [1,1,1,1,.15]}
         fig_distance,axes_distance = plt.subplots(1,5,num=0,figsize=fs,gridspec_kw=gridspec)
         fig_angle,axes_angle =plt.subplots(1,5,num=1,figsize=fs,gridspec_kw=gridspec)
@@ -179,31 +179,33 @@ class CreateSampleImages(TestCase):
 
 
 
+        h_pad = 3.0
+        w_pad = .8
 
         plt.figure(fig_distance.number)
         cbar = fig_distance.colorbar(im_distance,ax=axes_distance.tolist(),cax=axes_distance.flat[4],fraction=1.0)
         cbar.set_label("Ratio of distance on original plane to\ndistance on projected plane")
         fig_distance.suptitle("Distance ratio of transformed line segments with lengths of up to {}".format(limb_length_max))
-        fig_distance.tight_layout()
+        fig_distance.tight_layout(h_pad=h_pad,w_pad=w_pad)
         plt.savefig('./distance.pdf')
 
         plt.figure(fig_angle.number)
         cbar = fig_angle.colorbar(im_angle,ax=axes_angle.ravel().tolist(),cax = axes_angle.flat[4])
         cbar.set_label("Absolute angle deviation in °")
         fig_angle.suptitle("Angle difference for right angle\ntriangles with leg lengths of up to {}".format(limb_length_max))
-        fig_angle.tight_layout()
+        fig_angle.tight_layout(h_pad=h_pad,w_pad=w_pad)
         plt.savefig('./angle.pdf')
 
         plt.figure(fig_area.number)
         cbar = fig_area.colorbar(im_area,ax=axes_area.ravel().tolist(),cax = axes_area.flat[4])
         cbar.set_label("Area ratio")
         fig_area.suptitle("Area ratio for right angle\n triangles with leg lengths up to {}".format(limb_length_max))
-        fig_area.tight_layout()
+        fig_area.tight_layout(h_pad=h_pad,w_pad=w_pad)
         plt.savefig('./area.pdf')
 
         plt.figure(fig_direction.number)
         cbar = fig_direction.colorbar(im_direction,ax=axes_direction.ravel().tolist(),cax = axes_direction.flat[4])
         cbar.set_label("Absolute angle deviation in °")
         fig_direction.suptitle("Direction change of an transformed up vector of length {}".format(limb_length_max))
-        fig_direction.tight_layout()
+        fig_direction.tight_layout(h_pad=h_pad,w_pad=w_pad)
         plt.savefig('./direction.pdf')
