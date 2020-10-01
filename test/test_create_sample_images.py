@@ -99,9 +99,16 @@ class CreateSampleImages(TestCase):
 
         limb_length_max = 0.001
 
+
+        def apply_clipping(data:np.ndarray,clipping:np.ndarray):
+            d = data.copy()
+            d[clipping] = None
+            return d
+
+
         for i,angle in enumerate([0,15,30,45]):
             projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
-            trange = TargetSectionDescription(-2,2,2000,-2,2,2000)
+            trange = TargetSectionDescription(-2.6,2.6,2000,-2.6,2.6,2000)
             extent = [trange.xmin,trange.xmax,trange.ymin,trange.ymax]
             rp = RasterProjector(projection,CosSinRasterDataProvider)
             grid = rp.build_grid(trange)
@@ -115,7 +122,7 @@ class CreateSampleImages(TestCase):
             grid_offset_2 = grid + offset_2
             grid_up = grid + offset_up
             euclid = euclideanDist(grid,grid_offset)
-            grid_projected = projection(grid)
+            grid_projected,clipping = projection(grid,calculate_clipping=True)
             grid_offset_projected = projection(grid_offset)
             grid_offset_projected_2 = projection(grid_offset_2)
             grid_up_projected = projection(grid_up)
@@ -123,10 +130,11 @@ class CreateSampleImages(TestCase):
             ratio = projected_euclid / euclid
             ratio_e = np.expand_dims(ratio,axis=0)
             rsg = np.squeeze(rp.reshape_grid(ratio_e,trange,1),axis=-1)
+            clipping = np.squeeze(rp.reshape_grid(np.expand_dims(clipping,axis=0),trange,1),axis=-1)
             minv,maxv = rsg.min(),rsg.max()
             ax = axes_distance.flat[i]
             ax.set_title("cutoff angle = {}°".format(angle))
-            im_distance = ax.imshow(rsg,norm=LogNorm(0.1,10,clip=True),extent=extent)
+            im_distance = ax.imshow(apply_clipping(rsg,clipping),norm=LogNorm(0.1,10,clip=True),extent=extent)
 
 
 
@@ -144,7 +152,7 @@ class CreateSampleImages(TestCase):
 
             ax = axes_angle.flat[i]
             ax.set_title("cutoff angle = {}°".format(angle))
-            im_angle = ax.imshow(angles_formatted,norm=LogNorm(1e-5,180,clip=True),extent=extent)
+            im_angle = ax.imshow(apply_clipping(angles_formatted,clipping),norm=LogNorm(1e-5,180,clip=True),extent=extent)
 
 
 
@@ -156,7 +164,7 @@ class CreateSampleImages(TestCase):
 
             ax = axes_area.flat[i]
             ax.set_title( "cutoff angle = {}°".format(angle))
-            im_area = ax.imshow(area_ratio,norm=LogNorm(0.01,10),extent=extent)
+            im_area = ax.imshow(apply_clipping(area_ratio,clipping),norm=LogNorm(0.01,10),extent=extent)
 
 
 
@@ -168,7 +176,7 @@ class CreateSampleImages(TestCase):
 
             ax = axes_direction.flat[i]
             ax.set_title("cutoff angle = {}°".format(angle))
-            im_direction = ax.imshow(da_data,norm=Normalize(0,180),extent=extent)
+            im_direction = ax.imshow(apply_clipping(da_data,clipping),norm=Normalize(0,180),extent=extent)
 
 
 
@@ -179,33 +187,34 @@ class CreateSampleImages(TestCase):
 
 
 
-        h_pad = 3.0
-        w_pad = .8
+        h_pad = None
+        w_pad = None
+        pad = 3
 
         plt.figure(fig_distance.number)
         cbar = fig_distance.colorbar(im_distance,ax=axes_distance.tolist(),cax=axes_distance.flat[4],fraction=1.0)
-        cbar.set_label("Ratio of distance on original plane to\ndistance on projected plane")
+        cbar.set_label("Ratio of distance on original plane\nto distance on projected plane")
         fig_distance.suptitle("Distance ratio of transformed line segments with lengths of up to {}".format(limb_length_max))
-        fig_distance.tight_layout(h_pad=h_pad,w_pad=w_pad)
+        fig_distance.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
         plt.savefig('./distance.pdf')
 
         plt.figure(fig_angle.number)
         cbar = fig_angle.colorbar(im_angle,ax=axes_angle.ravel().tolist(),cax = axes_angle.flat[4])
         cbar.set_label("Absolute angle deviation in °")
-        fig_angle.suptitle("Angle difference for right angle\ntriangles with leg lengths of up to {}".format(limb_length_max))
-        fig_angle.tight_layout(h_pad=h_pad,w_pad=w_pad)
+        fig_angle.suptitle("Angle difference for right angle triangles with leg lengths of up to {}".format(limb_length_max))
+        fig_angle.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
         plt.savefig('./angle.pdf')
 
         plt.figure(fig_area.number)
         cbar = fig_area.colorbar(im_area,ax=axes_area.ravel().tolist(),cax = axes_area.flat[4])
         cbar.set_label("Area ratio")
-        fig_area.suptitle("Area ratio for right angle\n triangles with leg lengths up to {}".format(limb_length_max))
-        fig_area.tight_layout(h_pad=h_pad,w_pad=w_pad)
+        fig_area.suptitle("Area ratio for right angle triangles with leg lengths up to {}".format(limb_length_max))
+        fig_area.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
         plt.savefig('./area.pdf')
 
         plt.figure(fig_direction.number)
         cbar = fig_direction.colorbar(im_direction,ax=axes_direction.ravel().tolist(),cax = axes_direction.flat[4])
         cbar.set_label("Absolute angle deviation in °")
         fig_direction.suptitle("Direction change of an transformed up vector of length {}".format(limb_length_max))
-        fig_direction.tight_layout(h_pad=h_pad,w_pad=w_pad)
+        fig_direction.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
         plt.savefig('./direction.pdf')
