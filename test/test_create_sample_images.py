@@ -90,7 +90,7 @@ class CreateSampleImages(TestCase):
 
     def test_distance_scaling(self):
 
-        fs = (12,3)
+        fs = (12,2.8)
         gridspec = {'width_ratios': [1,1,1,1,.15]}
         fig_distance,axes_distance = plt.subplots(1,5,num=0,figsize=fs,gridspec_kw=gridspec)
         fig_angle,axes_angle =plt.subplots(1,5,num=1,figsize=fs,gridspec_kw=gridspec)
@@ -108,7 +108,7 @@ class CreateSampleImages(TestCase):
 
         for i,angle in enumerate([0,15,30,45]):
             projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
-            trange = TargetSectionDescription(-2.6,2.6,2000,-2.6,2.6,2000)
+            trange = TargetSectionDescription(-2,2,2000,-2,2,2000)
             extent = [trange.xmin,trange.xmax,trange.ymin,trange.ymax]
             rp = RasterProjector(projection,CosSinRasterDataProvider)
             grid = rp.build_grid(trange)
@@ -182,6 +182,7 @@ class CreateSampleImages(TestCase):
 
         for axes in [axes_distance,axes_angle,axes_area,axes_direction]:
             for x in axes.flat[:4]:
+                #x.grid(True,which='both',axis='both')
                 x.set_aspect(1)
             #axes.flat[-1].set_aspect(8)
 
@@ -189,32 +190,35 @@ class CreateSampleImages(TestCase):
 
         h_pad = None
         w_pad = None
-        pad = 3
+        pad = None
+        tight_args = {
+            "rect":[0,0,1,.9]
+        }
 
         plt.figure(fig_distance.number)
         cbar = fig_distance.colorbar(im_distance,ax=axes_distance.tolist(),cax=axes_distance.flat[4],fraction=1.0)
         cbar.set_label("Ratio of distance on original plane\nto distance on projected plane")
         fig_distance.suptitle("Distance ratio of transformed line segments with lengths of up to {}".format(limb_length_max))
-        fig_distance.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
+        fig_distance.tight_layout(**tight_args)
         plt.savefig('./distance.pdf')
 
         plt.figure(fig_angle.number)
         cbar = fig_angle.colorbar(im_angle,ax=axes_angle.ravel().tolist(),cax = axes_angle.flat[4])
         cbar.set_label("Absolute angle deviation in °")
         fig_angle.suptitle("Angle difference for right angle triangles with leg lengths of up to {}".format(limb_length_max))
-        fig_angle.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
+        fig_angle.tight_layout(**tight_args)
         plt.savefig('./angle.pdf')
 
         plt.figure(fig_area.number)
         cbar = fig_area.colorbar(im_area,ax=axes_area.ravel().tolist(),cax = axes_area.flat[4])
         cbar.set_label("Area ratio")
         fig_area.suptitle("Area ratio for right angle triangles with leg lengths up to {}".format(limb_length_max))
-        fig_area.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
+        fig_area.tight_layout(**tight_args)
         plt.savefig('./area.pdf')
 
         plt.figure(fig_direction.number)
         cbar = fig_direction.colorbar(im_direction,ax=axes_direction.ravel().tolist(),cax = axes_direction.flat[4])
         cbar.set_label("Absolute angle deviation in °")
         fig_direction.suptitle("Direction change of an transformed up vector of length {}".format(limb_length_max))
-        fig_direction.tight_layout(h_pad=h_pad,w_pad=w_pad,pad=pad)
+        fig_direction.tight_layout(**tight_args)
         plt.savefig('./direction.pdf')
