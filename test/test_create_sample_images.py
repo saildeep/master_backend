@@ -228,6 +228,6 @@ class CreateSampleImages(TestCase):
         plt.figure(fig_direction.number)
         cbar = fig_direction.colorbar(im_direction,ax=axes_direction.ravel().tolist(),cax = axes_direction.flat[4])
         cbar.set_label("Absolute angle deviation in °")
-        fig_direction.suptitle("Direction change of an transformed up vector of length {}".format(limb_length_max))
+        fig_direction.suptitle("Direction change of an vector of length {} pointing towards the center point (0,0)".format(limb_length_max))
         fig_direction.tight_layout(**tight_args)
         plt.savefig('./direction.pdf')
