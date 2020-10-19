@@ -108,7 +108,7 @@ class CreateSampleImages(TestCase):
 
         for i,angle in enumerate([0,15,30,45]):
             projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
-            trange = TargetSectionDescription(-2,2,2000,-2,2,2000)
+            trange = TargetSectionDescription(-2,2,1000,-2,2,1000)
             extent = [trange.xmin,trange.xmax,trange.ymin,trange.ymax]
             rp = RasterProjector(projection,CosSinRasterDataProvider)
             grid = rp.build_grid(trange)
@@ -118,14 +118,21 @@ class CreateSampleImages(TestCase):
             #offset_2 = np.random.uniform(-0.01,0.01,grid.shape)
             offset_up = np.stack([np.ones(grid.shape[1])*0,np.ones(grid.shape[1])*limb_length_max],axis=0)
 
+            azimuthal_center_point = np.array([[0],[0]])
+            azimuthal_to_center_vec  = azimuthal_center_point - grid
+            azimuthal_to_center_vec_len = np.sqrt( np.sum(np.square(azimuthal_to_center_vec),axis=0,keepdims=True)) + 1e-7
+
             grid_offset = grid+ offset
             grid_offset_2 = grid + offset_2
             grid_up = grid + offset_up
+            grid_towards_center = grid + limb_length_max * (azimuthal_to_center_vec/azimuthal_to_center_vec_len)
+
             euclid = euclideanDist(grid,grid_offset)
             grid_projected,clipping = projection(grid,calculate_clipping=True)
             grid_offset_projected = projection(grid_offset)
             grid_offset_projected_2 = projection(grid_offset_2)
             grid_up_projected = projection(grid_up)
+            grid_towards_center_projected = projection(grid_towards_center)
             projected_euclid = euclideanDist(grid_projected,grid_offset_projected)
             ratio = projected_euclid / euclid
             ratio_e = np.expand_dims(ratio,axis=0)
@@ -168,10 +175,12 @@ class CreateSampleImages(TestCase):
 
 
 
-            delta_up = grid_up - grid
-            delta_projected_up = grid_up_projected - grid_projected
+            delta_to_center = grid_towards_center - grid
+            delta_projected_up = grid_towards_center_projected - grid_projected
             d_angle =  np.arctan2(delta_projected_up[1,:],delta_projected_up[0,:])
-            d_angle = np.abs(np.degrees(np.expand_dims(d_angle,axis=0)))
+            delta_angle = np.arctan2(delta_to_center[1,:],delta_to_center[0,:])
+
+            d_angle = np.abs(np.degrees(np.expand_dims(d_angle - delta_angle,axis=0)) )
             da_data = np.squeeze(rp.reshape_grid(d_angle,trange,1))
 
             ax = axes_direction.flat[i]
