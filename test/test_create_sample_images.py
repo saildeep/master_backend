@@ -140,7 +140,7 @@ class CreateSampleImages(TestCase):
             clipping = np.squeeze(rp.reshape_grid(np.expand_dims(clipping,axis=0),trange,1),axis=-1)
             minv,maxv = rsg.min(),rsg.max()
             ax = axes_distance.flat[i]
-            ax.set_title("$\gamma$ = {}°".format(angle))
+            ax.set_title("$\gamma = {}°$".format(angle))
             im_distance = ax.imshow(apply_clipping(rsg,clipping),norm=LogNorm(0.1,10,clip=True),extent=extent)
 
 
@@ -158,7 +158,7 @@ class CreateSampleImages(TestCase):
             angles_formatted = np.squeeze(rp.reshape_grid(angle_diff,trange,1),axis=-1)
 
             ax = axes_angle.flat[i]
-            ax.set_title("$\gamma$ = {}°".format(angle))
+            ax.set_title("$\gamma$ = {}°$".format(angle))
             im_angle = ax.imshow(apply_clipping(angles_formatted,clipping),norm=LogNorm(1e-5,180,clip=True),extent=extent)
 
 
@@ -170,7 +170,7 @@ class CreateSampleImages(TestCase):
             area_ratio = np.squeeze(rp.reshape_grid(np.expand_dims(area/area_projected,axis=0),trange,1))
 
             ax = axes_area.flat[i]
-            ax.set_title("$\gamma$ = {}°".format(angle))
+            ax.set_title("$\gamma = {}°$".format(angle))
             im_area = ax.imshow(apply_clipping(area_ratio,clipping),norm=LogNorm(0.01,10),extent=extent)
 
 
@@ -184,7 +184,7 @@ class CreateSampleImages(TestCase):
             da_data = np.squeeze(rp.reshape_grid(d_angle,trange,1))
 
             ax = axes_direction.flat[i]
-            ax.set_title("$\gamma$ = {}°".format(angle))
+            ax.set_title("$\gamma = {}°$".format(angle))
             im_direction = ax.imshow(apply_clipping(da_data,clipping),norm=Normalize(0,180),extent=extent)
 
 
