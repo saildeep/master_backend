@@ -106,9 +106,9 @@ class CreateSampleImages(TestCase):
             return d
 
 
-        for i,angle in enumerate([0,15,30,45]):
+        for i,angle in enumerate([0,15,30,44.99]):
             projection = ComplexLogProjection(LatLng(-1,0),LatLng(1,0),math.radians(angle),smoothing_function_type=DualCosSmoothingFunction,preprojection=IdentityPreprojection())
-            trange = TargetSectionDescription(-2,2,1000,-2,2,1000)
+            trange = TargetSectionDescription(-2,2,5000,-2,2,5000)
             extent = [trange.xmin,trange.xmax,trange.ymin,trange.ymax]
             rp = RasterProjector(projection,CosSinRasterDataProvider)
             grid = rp.build_grid(trange)
@@ -140,7 +140,7 @@ class CreateSampleImages(TestCase):
             clipping = np.squeeze(rp.reshape_grid(np.expand_dims(clipping,axis=0),trange,1),axis=-1)
             minv,maxv = rsg.min(),rsg.max()
             ax = axes_distance.flat[i]
-            ax.set_title("cutoff angle = {}°".format(angle))
+            ax.set_title("$\gamma$ = {}°".format(angle))
             im_distance = ax.imshow(apply_clipping(rsg,clipping),norm=LogNorm(0.1,10,clip=True),extent=extent)
 
 
