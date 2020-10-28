@@ -72,8 +72,12 @@ class CreateSampleImages(TestCase):
         #frankfurt_a_m = LatLng(50.115822, 8.702537)
         stuttgart = LatLng(48.783810,9.180071)
 
+        t = 5
         fn = LatLng(47.652839, 9.472735)  #
-        angles  = np.arange(0,44.9,.2)
+        angles  = np.arange(0,44.9,.3).tolist()
+
+        fps = int( len(angles)/t)
+        print("FPS:",fps)
         with tempfile.TemporaryDirectory() as tdir:
             files = []
 
@@ -95,7 +99,7 @@ class CreateSampleImages(TestCase):
                 print(filepath)
 
             import cv2
-            out = cv2.VideoWriter('angles.avi', cv2.VideoWriter_fourcc(*'MJPG'), 25, (w,h))
+            out = cv2.VideoWriter('angles.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
             for filepath in files:
                 im = cv2.imread(filepath)
                 out.write(im)
