@@ -14,6 +14,9 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize,LogNorm
+import tempfile
+import os
+
 
 class CreateSampleImages(TestCase):
     def test_project_image_angles(self):
@@ -59,6 +62,47 @@ class CreateSampleImages(TestCase):
             filename = "sample-ch-angle-" + str(angle)+".jpeg"
             im.convert('RGB').save(filename,optimize=True)
             print(filename)
+
+    def test_project_ch_video(self):
+        prov = get_providers()
+        w=2000
+        h = 1000
+
+        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, w, -math.pi, math.pi,h)
+        #frankfurt_a_m = LatLng(50.115822, 8.702537)
+        stuttgart = LatLng(48.783810,9.180071)
+
+        fn = LatLng(47.652839, 9.472735)  #
+        angles  = np.arange(0,44.9,.2)
+        with tempfile.TemporaryDirectory() as tdir:
+            files = []
+
+            for angle in angles:
+
+                projection = ComplexLogProjection(stuttgart, fn, math.radians(angle),
+                                                  smoothing_function_type=DualCosSmoothingFunction)
+                projector_transparent = RasterProjector(projection, prov['ch'])
+                projector_mapbox = RasterProjector(projection, prov['mapbox'])
+
+                d_trans =  Image.fromarray(projector_transparent.project(trange))
+                d_mapbox = Image.fromarray(projector_mapbox.project(trange))
+
+                im = Image.alpha_composite(d_mapbox,d_trans)
+                filename = "sample-ch-angle-{:07.2f}.jpeg".format(angle)
+                filepath = os.path.join(tdir,filename)
+                files.append(filepath)
+                im.convert('RGB').save(filepath,optimize=True)
+                print(filepath)
+
+            import cv2
+            out = cv2.VideoWriter('angles.avi', cv2.VideoWriter_fourcc(*'MJPG'), 25, (w,h))
+            for filepath in files:
+                im = cv2.imread(filepath)
+                out.write(im)
+            out.release()
+
+
+
 
     def test_project_image_distances(self):
             prov = get_providers()
