@@ -72,42 +72,107 @@ class CreateSampleImages(TestCase):
         #frankfurt_a_m = LatLng(50.115822, 8.702537)
         stuttgart = LatLng(48.783810,9.180071)
 
-        t = 5
+        num_steps = 100
         fn = LatLng(47.652839, 9.472735)  #
-        angles  = np.arange(0,44.9,.5).tolist()
-
-        fps = int( len(angles)/t)
+        angles  = np.linspace(0,44.9,num_steps).tolist()
+        fps = 10
         print("FPS:",fps)
+        for provider in ['mapbox','transparent']:
+            with tempfile.TemporaryDirectory(suffix=provider) as tdir:
+                files = []
+
+                for angle in angles:
+
+                    projection = ComplexLogProjection(stuttgart, fn, math.radians(angle),
+                                                      smoothing_function_type=DualCosSmoothingFunction)
+                    projector_transparent = RasterProjector(projection, prov['ch'])
+                    projector_mapbox = RasterProjector(projection, prov[provider])
+
+                    d_trans =  Image.fromarray(projector_transparent.project(trange))
+                    d_mapbox = Image.fromarray(projector_mapbox.project(trange))
+
+                    im = Image.alpha_composite(d_mapbox,d_trans)
+                    filename = "sample-ch-angle-{:05.2f}.jpeg".format(angle)
+                    filepath = os.path.join(tdir,filename)
+                    files.append((filepath,angle))
+                    im.convert('RGB').save(filepath,optimize=True)
+                    print(filepath)
+
+                import cv2
+                out = cv2.VideoWriter('angles-{}.avi'.format(provider), cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
+                for filepath,angle in files:
+                    d = 0.01
+
+                    im = cv2.imread(filepath)
+                    text = "{:05.2f}".format(angle)
+                    fontscale = h / 200
+                    linethickness = int(h/100)
+                    cv2.putText(im,
+                                text,
+                                (int(w*d),int(h*(1-d))),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                fontscale,
+                                (240,240,240),
+                                linethickness,
+                                cv2.LINE_AA)
+                    out.write(im)
+                out.release()
+
+    def test_project_dist_video(self):
+        prov = get_providers()
+        w = 512
+        h = 256
+
+        trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, w, -math.pi,math.pi, h)
+        # frankfurt_a_m = LatLng(50.115822, 8.702537)
+        start = LatLng(48.783810, 9.180071)
+        angle = 30
+        t = 5
+        fps = 10
+        end = LatLng(47.652839, 9.472735)  #
+
+
+        numsteps = 50
+        steps = list(reversed(list(map(lambda a:LatLng(a[0],a[1]),zip(np.linspace(end.lat,start.lat,numsteps,endpoint=False),np.linspace(end.lng,start.lng,numsteps,endpoint=False))))))
+        print("FPS:", fps)
         with tempfile.TemporaryDirectory() as tdir:
             files = []
 
-            for angle in angles:
+            for i,step in enumerate(steps):
 
-                projection = ComplexLogProjection(stuttgart, fn, math.radians(angle),
+                distance = start.distanceTo(step)
+                projection = ComplexLogProjection(start, step, math.radians(angle),
                                                   smoothing_function_type=DualCosSmoothingFunction)
                 projector_transparent = RasterProjector(projection, prov['ch'])
                 projector_mapbox = RasterProjector(projection, prov['mapbox'])
 
-                d_trans =  Image.fromarray(projector_transparent.project(trange))
+                d_trans = Image.fromarray(projector_transparent.project(trange))
                 d_mapbox = Image.fromarray(projector_mapbox.project(trange))
 
-                im = Image.alpha_composite(d_mapbox,d_trans)
-                filename = "sample-ch-angle-{:05.2f}.jpeg".format(angle)
-                filepath = os.path.join(tdir,filename)
-                files.append((filepath,angle))
-                im.convert('RGB').save(filepath,optimize=True)
+                im = Image.alpha_composite(d_mapbox, d_trans)
+                filename = "sample-ch-distance-{:012.6f}.jpeg".format(distance)
+                filepath = os.path.join(tdir, filename)
+                files.append((filepath, distance))
+                im.convert('RGB').save(filepath, optimize=True)
                 print(filepath)
 
             import cv2
-            out = cv2.VideoWriter('angles.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
-            for filepath,angle in files:
+            out = cv2.VideoWriter('distances.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
+            for filepath, distance in files:
                 d = 0.01
 
                 im = cv2.imread(filepath)
-                text = "{:05.2f}".format(angle)
+                text = "{:05.2f}km".format(distance)
                 fontscale = h / 200
-                linethickness = int(h/100)
-                cv2.putText(im,text,(int(w*d),int(h*(1-d))),cv2.FONT_HERSHEY_SIMPLEX,fontscale,(240,240,240),linethickness,cv2.LINE_AA)
+                linethickness = int(h / 100)
+                cv2.putText(im,
+                            text,
+                            (int(w * d), int(h * (1 - d))),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            fontscale,
+                            (240, 240, 240),
+                            linethickness,
+                            cv2.LINE_AA)
                 out.write(im)
             out.release()
 
