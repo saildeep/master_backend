@@ -149,7 +149,7 @@ class CreateSampleImages(TestCase):
                 distance = start.distanceTo(step)
                 projection = ComplexLogProjection(start, step, math.radians(angle),
                                                   smoothing_function_type=DualCosSmoothingFunction)
-                projector_transparent = RasterProjector(projection, prov['ch'])
+                projector_transparent = RasterProjector(projection, prov['transparent'])
                 projector_mapbox = RasterProjector(projection, prov['mapbox'])
 
                 d_trans = Image.fromarray(projector_transparent.project(trange))
