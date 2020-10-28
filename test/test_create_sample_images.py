@@ -20,7 +20,7 @@ import os
 
 
 def get_destination(filename):
-    return os.path.join(os.environ.get("TARGET_PATH",'.'),filename)
+    return os.path.join(os.environ.get("OUTPUT_PATH",'.'),filename)
 
 
 class CreateSampleImages(TestCase):
