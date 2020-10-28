@@ -158,7 +158,7 @@ class CreateSampleImages(TestCase):
             angles_formatted = np.squeeze(rp.reshape_grid(angle_diff,trange,1),axis=-1)
 
             ax = axes_angle.flat[i]
-            ax.set_title("$\gamma$ = {}°$".format(angle))
+            ax.set_title("$\gamma = {}°$".format(angle))
             im_angle = ax.imshow(apply_clipping(angles_formatted,clipping),norm=LogNorm(1e-5,180,clip=True),extent=extent)
 
 
