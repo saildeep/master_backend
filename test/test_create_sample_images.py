@@ -74,7 +74,7 @@ class CreateSampleImages(TestCase):
 
         t = 5
         fn = LatLng(47.652839, 9.472735)  #
-        angles  = np.arange(0,44.9,.3).tolist()
+        angles  = np.arange(0,44.9,.5).tolist()
 
         fps = int( len(angles)/t)
         print("FPS:",fps)
@@ -92,16 +92,22 @@ class CreateSampleImages(TestCase):
                 d_mapbox = Image.fromarray(projector_mapbox.project(trange))
 
                 im = Image.alpha_composite(d_mapbox,d_trans)
-                filename = "sample-ch-angle-{:07.2f}.jpeg".format(angle)
+                filename = "sample-ch-angle-{:05.2f}.jpeg".format(angle)
                 filepath = os.path.join(tdir,filename)
-                files.append(filepath)
+                files.append((filepath,angle))
                 im.convert('RGB').save(filepath,optimize=True)
                 print(filepath)
 
             import cv2
             out = cv2.VideoWriter('angles.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
-            for filepath in files:
+            for filepath,angle in files:
+                d = 0.01
+
                 im = cv2.imread(filepath)
+                text = "{:05.2f}".format(angle)
+                fontscale = h / 200
+                linethickness = int(h/100)
+                cv2.putText(im,text,(int(w*d),int(h*(1-d))),cv2.FONT_HERSHEY_SIMPLEX,fontscale,(240,240,240),linethickness,cv2.LINE_AA)
                 out.write(im)
             out.release()
 
