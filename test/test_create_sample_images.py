@@ -18,7 +18,13 @@ import tempfile
 import os
 
 
+
+def get_destination(filename):
+    return os.path.join(os.environ.get("TARGET_PATH",'.'),filename)
+
+
 class CreateSampleImages(TestCase):
+
     def test_project_image_angles(self):
         prov = get_providers()
         trange = TargetSectionDescription(-math.pi * 2, math.pi * 2, 4000, -math.pi/2, math.pi/2, 1000)
@@ -37,7 +43,7 @@ class CreateSampleImages(TestCase):
             d_mapbox = Image.fromarray(projector_mapbox.project(trange))
 
             im = Image.alpha_composite(d_mapbox,d_trans)
-            filename = "sample-angle-" + str(angle)+".jpeg"
+            filename = get_destination("sample-angle-" + str(angle)+".jpeg")
             im.convert('RGB').save(filename,optimize=True)
             print(filename)
 
@@ -59,7 +65,7 @@ class CreateSampleImages(TestCase):
             d_mapbox = Image.fromarray(projector_mapbox.project(trange))
 
             im = Image.alpha_composite(d_mapbox,d_trans)
-            filename = "sample-ch-angle-" + str(angle)+".jpeg"
+            filename = get_destination("sample-ch-angle-" + str(angle)+".jpeg")
             im.convert('RGB').save(filename,optimize=True)
             print(filename)
 
@@ -99,7 +105,7 @@ class CreateSampleImages(TestCase):
                 print(filepath)
 
             import cv2
-            out = cv2.VideoWriter('angles-{}.avi'.format('mapbox-osm'), cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
+            out = cv2.VideoWriter(get_destination('angles-{}.avi'.format('mapbox-osm')), cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
             for filepath,angle in files:
                 d = 0.01
 
@@ -157,7 +163,7 @@ class CreateSampleImages(TestCase):
                 print(filepath)
 
             import cv2
-            out = cv2.VideoWriter('distances.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
+            out = cv2.VideoWriter(get_destination('distances.avi'), cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
             for filepath, distance in files:
                 d = 0.01
 
@@ -202,7 +208,7 @@ class CreateSampleImages(TestCase):
 
                 im = Image.alpha_composite(d_mapbox,d_trans)
                 dist = int(hamburg.distanceTo(to))
-                filename = "sample-distance-" + str(dist)+".jpeg"
+                filename = get_destination("sample-distance-" + str(dist)+".jpeg")
                 im.convert('RGB').save(filename,optimize=True)
 
                 print("Finished " + filename + " with distance " + str(dist))
@@ -335,18 +341,18 @@ class CreateSampleImages(TestCase):
         cbar.set_label("Absolute angle deviation in °")
         fig_angle.suptitle("Angle difference for right angle triangles with leg lengths of up to {}".format(limb_length_max))
         fig_angle.tight_layout(**tight_args)
-        plt.savefig('./angle.pdf')
+        plt.savefig(get_destination('./angle.pdf'))
 
         plt.figure(fig_area.number)
         cbar = fig_area.colorbar(im_area,ax=axes_area.ravel().tolist(),cax = axes_area.flat[4])
         cbar.set_label("Area ratio")
         fig_area.suptitle("Area ratio for right angle triangles with leg lengths up to {}".format(limb_length_max))
         fig_area.tight_layout(**tight_args)
-        plt.savefig('./area.pdf')
+        plt.savefig(get_destination('./area.pdf'))
 
         plt.figure(fig_direction.number)
         cbar = fig_direction.colorbar(im_direction,ax=axes_direction.ravel().tolist(),cax = axes_direction.flat[4])
         cbar.set_label("Absolute angle deviation in °")
         fig_direction.suptitle("Direction change of an vector of length {} pointing towards the center point (0,0)".format(limb_length_max))
         fig_direction.tight_layout(**tight_args)
-        plt.savefig('./direction.pdf')
+        plt.savefig(get_destination('./direction.pdf'))
