@@ -78,10 +78,10 @@ class CreateSampleImages(TestCase):
         #frankfurt_a_m = LatLng(50.115822, 8.702537)
         stuttgart = LatLng(48.783810,9.180071)
 
-        num_steps = 100
+        num_steps = 200
         fn = LatLng(47.652839, 9.472735)  #
         angles  = np.linspace(0,44.9,num_steps).tolist()
-        fps = 10
+        fps = 25
         print("FPS:",fps)
 
         with tempfile.TemporaryDirectory() as tdir:
@@ -108,6 +108,7 @@ class CreateSampleImages(TestCase):
             out = cv2.VideoWriter(get_destination('angles-{}.avi'.format('mapbox-osm')), cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
             for filepath,angle in files:
                 d = 0.01
+                print("Loading ", filepath)
 
                 im = cv2.imread(filepath)
                 text = "{:05.2f}".format(angle)
