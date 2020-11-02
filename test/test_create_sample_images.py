@@ -123,7 +123,7 @@ class CreateSampleImages(TestCase):
                             linethickness,
                             cv2.LINE_AA)
                 out.write(im)
-                out.release()
+            out.release()
 
     def test_project_dist_video(self):
         prov = get_providers()
