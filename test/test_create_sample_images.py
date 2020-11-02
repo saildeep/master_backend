@@ -292,7 +292,7 @@ class CreateSampleImages(TestCase):
             area = triangleArea(grid,grid_offset,grid_offset_2)
             area_projected = triangleArea(grid_projected,grid_offset_projected,grid_offset_projected_2)
 
-            area_ratio = np.squeeze(rp.reshape_grid(np.expand_dims(area/area_projected,axis=0),trange,1))
+            area_ratio = np.squeeze(rp.reshape_grid(np.expand_dims(area_projected/area,axis=0),trange,1))
 
             ax = axes_area.flat[i]
             ax.set_title("$\gamma = {}°$".format(angle))
