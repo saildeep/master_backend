@@ -270,7 +270,10 @@ class CreateSampleImages(TestCase):
             minv,maxv = rsg.min(),rsg.max()
             ax = axes_distance.flat[i]
             ax.set_title("$\gamma = {}°$".format(angle))
-            im_distance = ax.imshow(apply_clipping(rsg,clipping),norm=LogNorm(0.1,10,clip=True),extent=extent)
+            im_distance = ax.imshow(apply_clipping(rsg,clipping)
+                                    ,norm=LogNorm(0.1,10,clip=True)
+                                     #,norm=LogNorm()
+                                    ,extent=extent)
 
 
 
@@ -288,7 +291,9 @@ class CreateSampleImages(TestCase):
 
             ax = axes_angle.flat[i]
             ax.set_title("$\gamma = {}°$".format(angle))
-            im_angle = ax.imshow(apply_clipping(angles_formatted,clipping),norm=Normalize(0,60,clip=True),extent=extent)
+            im_angle = ax.imshow(apply_clipping(angles_formatted,clipping),
+                                 norm=Normalize(0,60,clip=True),
+                                 extent=extent)
 
 
 
@@ -336,7 +341,7 @@ class CreateSampleImages(TestCase):
         plt.figure(fig_distance.number)
 
         cbar = fig_distance.colorbar(im_distance,ax=axes_distance.tolist(),cax=axes_distance.flat[4],fraction=1.0)
-        cbar.set_clim(10 ** -1, 10 ** 1)
+        #cbar.set_clim(10 ** -1, 10 ** 1)
         cbar.set_label("Ratio of distance on original plane\nto distance on projected plane")
         fig_distance.suptitle("Distance ratio of transformed line segments with lengths of up to {}".format(limb_length_max))
         fig_distance.tight_layout(**tight_args)
@@ -345,7 +350,7 @@ class CreateSampleImages(TestCase):
         plt.figure(fig_angle.number)
 
         cbar = fig_angle.colorbar(im_angle,ax=axes_angle.ravel().tolist(),cax = axes_angle.flat[4])
-        cbar.set_clim(10 ** -3, 180)
+        #cbar.set_clim(10 ** -3, 180)
         cbar.set_label("Absolute angle deviation in °")
         fig_angle.suptitle("Angle difference for right angle triangles with leg lengths of up to {}".format(limb_length_max))
         fig_angle.tight_layout(**tight_args)
