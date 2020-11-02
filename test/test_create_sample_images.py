@@ -231,7 +231,7 @@ class CreateSampleImages(TestCase):
             return d
 
 
-        res = 300
+        res = 5000
 
 
         for i,angle in enumerate([0,15,30,44.99]):
