@@ -4,6 +4,9 @@ import math
 import matplotlib.pyplot as plt
 import os
 
+import numpy as np
+from source.smoothing_functions import DualCosSmoothingFunction
+
 
 def save_plot(fig,name):
 
@@ -46,6 +49,27 @@ class TestCreatePresentationImages(TestCase):
         ax.add_patch(plt.Circle(center_positions[0], center_distance / 2, color='orange', alpha=0.5, zorder=-1))
         ax.add_patch(plt.Circle(center_positions[1], center_distance / 2, color='orange', alpha=0.5, zorder=-1))
 
+    def add_modified_range_circles(self,ax,angle=30):
+        smoothing = DualCosSmoothingFunction(math.radians(angle))
+        r = center_distance *.5
+        diff_vec =  np.array(center_positions[1]) - np.array(center_positions[0])
+        direction_angular = math.atan2(diff_vec[1],diff_vec[0])
+
+        for center, direction_angular in zip(center_positions,[direction_angular,direction_angular+math.pi]):
+            polygon = []
+            for angle in np.linspace(0,math.pi * 2,200,endpoint=False):
+                r_mod = (r / smoothing.scale(np.array([angle - direction_angular])))[0]
+                x = center[0] + math.cos(angle) * r_mod
+                y = center[1] + math.sin(angle) * r_mod
+                polygon.append((x,y))
+
+            polygon = np.array(polygon)
+
+            ax.add_patch(plt.Polygon(np.array(polygon),color='blue',alpha=.5))
+
+
+
+
     def add_route(self,ax):
 
         x = []
@@ -83,6 +107,6 @@ class TestCreatePresentationImages(TestCase):
 
         save_plot(fig,'midpoint')
 
-        self.add_range_circles(ax)
+        self.add_modified_range_circles(ax)
 
         save_plot(fig,'circles')
