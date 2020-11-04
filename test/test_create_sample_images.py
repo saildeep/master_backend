@@ -106,7 +106,7 @@ class CreateSampleImages(TestCase):
 
             import cv2
             out = cv2.VideoWriter(get_destination('angles-{}.avi'.format('mapbox-osm')), cv2.VideoWriter_fourcc(*'MJPG'), fps, (w,h))
-            for filepath,angle in files:
+            for filepath,angle in files + list(reversed(files)):
                 d = 0.01
                 print("Loading ", filepath)
 
@@ -165,7 +165,7 @@ class CreateSampleImages(TestCase):
 
             import cv2
             out = cv2.VideoWriter(get_destination('distances.avi'), cv2.VideoWriter_fourcc(*'MJPG'), fps, (w, h))
-            for filepath, distance in files:
+            for filepath, distance in files + list(reversed(files)):
                 d = 0.01
 
                 im = cv2.imread(filepath)
