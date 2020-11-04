@@ -6,6 +6,7 @@ import os
 
 import numpy as np
 from source.smoothing_functions import DualCosSmoothingFunction
+import pickle
 
 
 def save_plot(fig,name):
@@ -13,8 +14,8 @@ def save_plot(fig,name):
     folder = os.path.join('.','presentation')
     if not os.path.isdir(folder):
         os.mkdir(folder)
-
-    fig.savefig(os.path.join(folder,name+'.png'),dpi=1000)
+    fig.tight_layout()
+    fig.savefig(os.path.join(folder,name+'.png'),dpi=500)
 
 
 fig_w = 5
@@ -80,33 +81,52 @@ class TestCreatePresentationImages(TestCase):
 
         ax.plot(x,y,color='red')
 
-    def test_create_circles(self):
-        fig = plt.figure(
-        #    figsize=(5,5)
-        )
+    def get_new_fig(self):
+        fig = plt.figure()
 
         ax = plt.gca()
         ax.set_aspect('equal')
         ax.set_xlim(0, 7)
         ax.set_ylim(0, 5)
 
+        return fig,ax
+
+    def test_create_route(self):
+
+        fig,ax = self.get_new_fig()
 
         self.add_centers(ax)
-
-        save_plot(fig,'only_points')
 
         self.add_route(ax)
 
         save_plot(fig,'route')
 
 
+
+
+
+    def test_create_midpoint(self):
+
+        fig, ax = self.get_new_fig()
+        self.add_centers(ax)
+        self.add_route(ax)
         self.add_midline(ax)
+        save_plot(fig, 'midpoint')
 
+    def test_create_circles(self):
 
+        fig, ax = self.get_new_fig()
+        self.add_centers(ax)
+        self.add_route(ax)
+        self.add_midline(ax)
+        self.add_modified_range_circles(ax, angle=0)
+        save_plot(fig, 'circles')
 
+    def test_create_smoothed_circles(self):
 
-        save_plot(fig,'midpoint')
-
-        self.add_modified_range_circles(ax)
-
-        save_plot(fig,'circles')
+        fig, ax = self.get_new_fig()
+        self.add_centers(ax)
+        self.add_route(ax)
+        self.add_midline(ax)
+        self.add_modified_range_circles(ax, angle=30)
+        save_plot(fig, 'circles_smoothed')
