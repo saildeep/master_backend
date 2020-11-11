@@ -75,17 +75,24 @@ class TestCreatePresentationImages(TestCase):
         direction_angular = math.atan2(diff_vec[1],diff_vec[0])
 
         for center, direction_angular in zip(center_positions,[direction_angular,direction_angular+math.pi]):
-            polygon = []
-            for angle in np.linspace(0,math.pi * 2,200,endpoint=False):
-                r_mod = (r / smoothing.scale(np.array([angle - direction_angular])))[0]
-                x = center[0] + math.cos(angle) * r_mod
-                y = center[1] + math.sin(angle) * r_mod
-                polygon.append((x,y))
+            polygon = self.get_modified_range_polygon_outline(angle,direction_angular,center,r)
 
-            polygon = np.array(polygon)
 
             ax.add_patch(plt.Polygon(np.array(polygon),**displayable_area_style))
 
+
+    def get_modified_range_polygon_outline(self,angle,angle_offset=0,center=[0,0],r=1.0):
+        smoothing = DualCosSmoothingFunction(math.radians(angle))
+
+        polygon = []
+        for angle in np.linspace(0, math.pi * 2, 200, endpoint=False):
+            r_mod = (r / smoothing.scale(np.array([angle-angle_offset ])))[0]
+            x = center[0] + math.cos(angle) * r_mod
+            y = center[1] + math.sin(angle) * r_mod
+            polygon.append((x, y))
+
+        polygon = np.array(polygon)
+        return polygon
 
 
 
@@ -160,6 +167,31 @@ class TestCreatePresentationImages(TestCase):
 
 
         save_plot(fig,'circles_affine')
+
+    def test_create_circles_affine_smoothed(self):
+        fig, axs = plt.subplots(1, 3, figsize=(fig_h * 1.8, fig_h))
+        ax = axs[0]
+        ax.set_aspect('equal')
+        self.add_centers(ax)
+        # self.add_route(ax)
+        self.add_midline(ax)
+        angle = 30
+        self.add_modified_range_circles(ax, angle=angle)
+
+
+
+        for i, ax in zip([0, 1], [axs[1], axs[2]]):
+            ax.set_aspect('equal')
+            ax.scatter(0, 0, color=center_point_color)
+            ax.annotate("$~G^{}$".format(i + 1), (0, 0), va="bottom", ha='right', color=center_point_color)
+            ax.scatter(1, 0, color=midpoint_color)
+            ax.annotate("$M$", (1, 0), va="bottom", ha='right', color=midpoint_color)
+            polygon = self.get_modified_range_polygon_outline(angle)
+            ax.add_patch(plt.Polygon(np.array(polygon), **displayable_area_style))
+
+            ax.plot([0, 1], [0, 0], **midline_style)
+
+        save_plot(fig, 'circles_affine_smoothed')
 
     def test_create_smoothed_circles(self):
 
