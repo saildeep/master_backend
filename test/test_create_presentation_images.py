@@ -26,13 +26,14 @@ midpoint = ((center_positions[0][0] + center_positions[1][0])*.5,(center_positio
 
 center_distance = math.sqrt( (center_positions[0][0]- center_positions[1][0])**2 + (center_positions[0][1]- center_positions[1][1])**2 )
 
-
+k_color = "red"
 
 displayable_area_style={
     "color":'blue',
     "alpha":0.3,
     "zorder":-1,
 }
+k = (3,1)
 
 center_point_color = "orange"
 midpoint_color = "green"
@@ -47,7 +48,9 @@ route_color="red"
 class TestCreatePresentationImages(TestCase):
 
 
-
+    def add_k(self,ax):
+        ax.scatter(k[0],k[1],color=k_color)
+        ax.annotate("$k$",(k[0]+.1,k[1]),va="top",ha="left",color=k_color)
 
     def add_centers(self,ax):
         ax.scatter(list(map(lambda x: x[0], center_positions)), list(map(lambda x: x[1], center_positions)),color=center_point_color)
@@ -136,6 +139,7 @@ class TestCreatePresentationImages(TestCase):
         self.add_centers(ax)
         #self.add_route(ax)
         self.add_midline(ax)
+        self.add_k(ax)
         save_plot(fig, 'midpoint')
 
     def test_create_circles(self):
