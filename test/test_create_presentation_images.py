@@ -28,19 +28,19 @@ midpoint = ((center_positions[0][0] + center_positions[1][0])*.5,(center_positio
 
 center_distance = math.sqrt( (center_positions[0][0]- center_positions[1][0])**2 + (center_positions[0][1]- center_positions[1][1])**2 )
 
-k_color = "red"
+k_color = "pink"
 
 displayable_area_style={
-    "color":'blue',
+    "color":'#054A91',
     "alpha":0.3,
     "zorder":-1,
 }
 k = (2,2)
 
-center_point_color = "orange"
-midpoint_color = "green"
-midline_style = {"color":"cyan","linestyle":"dashed"}
-route_color="red"
+center_point_color = "#EB5600"
+midpoint_color = "#1A9988"
+midline_style = {"color":"#A9FDAC","linestyle":"dashed"}
+route_color="#F2F230"
 
 
 
@@ -141,7 +141,7 @@ class TestCreatePresentationImages(TestCase):
         self.add_centers(ax)
         #self.add_route(ax)
         self.add_midline(ax)
-        self.add_k(ax)
+        #self.add_k(ax)
         save_plot(fig, 'midpoint')
 
     def test_create_circles(self):
