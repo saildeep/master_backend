@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import os
 
 import numpy as np
+from matplotlib.patches import ConnectionPatch
+
 from source.smoothing_functions import DualCosSmoothingFunction
 import pickle
 
@@ -33,7 +35,7 @@ displayable_area_style={
     "alpha":0.3,
     "zorder":-1,
 }
-k = (3,1)
+k = (2,2)
 
 center_point_color = "orange"
 midpoint_color = "green"
@@ -171,6 +173,75 @@ class TestCreatePresentationImages(TestCase):
 
 
         save_plot(fig,'circles_affine')
+
+    def test_create_circles_affine_to_complex_log(self):
+
+        fig, axs = plt.subplots(2,2, figsize=(fig_h * 1.8, fig_h))
+
+
+        for i, ax,title in zip([0, 1], [axs[0,0], axs[0,1]],["$p=1$","$p=2$"]):
+            ax.set_aspect('equal')
+            ax.scatter(0, 0, color=center_point_color)
+            ax.annotate("$~G^{}$".format(i + 1), (0, 0), va="bottom", ha='right', color=center_point_color)
+            ax.scatter(1, 0, color=midpoint_color)
+            ax.annotate("$M$", (1, 0), va="bottom", ha='right', color=midpoint_color)
+            ax.add_patch(plt.Circle((0, 0), 1, **displayable_area_style))
+            ax.plot([0, 1], [0, 0], **midline_style)
+            ax.set_title(title)
+
+        for direction, ax in zip([1,-1],[axs[1,0], axs[1,1]]):
+            minus_inf = -10000000
+            ax.scatter(0,0,color=midpoint_color)
+            ax.plot([minus_inf,0],[0,0],**midline_style)
+            ax.annotate("$M$", (0, 0), va="bottom", ha='right', color=midpoint_color)
+            ax.add_patch(plt.Rectangle((minus_inf,-math.pi),- minus_inf,2*math.pi,**displayable_area_style))
+            ax.set_xlim(-3,3)
+            ax.set_yticks([-math.pi, -.5*math.pi,0,.5*math.pi,math.pi])
+            ax.set_yticklabels(["$-\pi$","$- \\frac{\pi}{2}$","0","$\\frac{\pi}{2}$","$\pi$"])
+
+
+        for from_ax,to_ax in [(axs[0,0],axs[1,0]),(axs[0,1],axs[1,1])]:
+            con = ConnectionPatch(xyA=(0.5,0.1), xyB=(0.4,.8), coordsA='axes fraction', coordsB='axes fraction',
+                      axesA=from_ax, axesB=to_ax,
+                      arrowstyle="->", shrinkB=5,zorder=2000)
+
+            to_ax.add_artist(con)
+
+        save_plot(fig, 'circles_affine_to_cl')
+
+    def test_create_circles_affine_to_complex_log_flipped(self):
+
+        fig, axs = plt.subplots(2,2, figsize=(fig_h * 1.8, fig_h))
+
+
+        for i, ax,title in zip([0, 1], [axs[0,0], axs[0,1]],["$p=1$","$p=2$"]):
+            ax.set_aspect('equal')
+            ax.scatter(0, 0, color=center_point_color)
+            ax.annotate("$~G^{}$".format(i + 1), (0, 0), va="bottom", ha='right', color=center_point_color)
+            ax.scatter(1, 0, color=midpoint_color)
+            ax.annotate("$M$", (1, 0), va="bottom", ha='right', color=midpoint_color)
+            ax.add_patch(plt.Circle((0, 0), 1, **displayable_area_style))
+            ax.plot([0, 1], [0, 0], **midline_style)
+            ax.set_title(title)
+
+        for direction, ax in zip([1,-1],[axs[1,0], axs[1,1]]):
+            minus_inf = -10000000 * direction
+            ax.scatter(0,0,color=midpoint_color)
+            ax.plot([minus_inf,0],[0,0],**midline_style)
+            ax.annotate("$M$", (0, 0), va="bottom", ha='right', color=midpoint_color)
+            ax.add_patch(plt.Rectangle((minus_inf,-math.pi),- minus_inf,2*math.pi,**displayable_area_style))
+            ax.set_xlim(-3, 3)
+            ax.set_yticks([-math.pi, -.5*math.pi,0,.5*math.pi,math.pi])
+            ax.set_yticklabels(["$-\pi$","$- \\frac{\pi}{2}$","0","$\\frac{\pi}{2}$","$\pi$"])
+
+        for from_ax, to_ax,flip in [(axs[0, 0], axs[1, 0],1), (axs[0, 1], axs[1, 1],-1)]:
+            con = ConnectionPatch(xyA=(0.5, 0.1), xyB=(.5 - flip * .1, .8), coordsA='axes fraction', coordsB='axes fraction',
+                                  axesA=from_ax, axesB=to_ax,
+                                  arrowstyle="->", shrinkB=5, zorder=2000)
+
+            to_ax.add_artist(con)
+
+        save_plot(fig, 'circles_affine_to_cl_flipped')
 
     def test_create_circles_affine_smoothed(self):
         fig, axs = plt.subplots(1, 3, figsize=(fig_h * 1.8, fig_h))
