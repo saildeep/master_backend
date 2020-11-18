@@ -109,7 +109,7 @@ class TestCreatePresentationImages(TestCase):
             x.append(route_element[0])
             y.append(route_element[1])
 
-        ax.plot(x,y,color='red')
+        ax.plot(x,y,color=route_color,linestyle='dashed')
 
     def get_new_fig(self):
         fig = plt.figure(figsize=(fig_h,fig_h))
@@ -153,8 +153,17 @@ class TestCreatePresentationImages(TestCase):
         self.add_modified_range_circles(ax, angle=0)
         save_plot(fig, 'circles')
 
+    def test_create_circles_route(self):
+        fig, ax = self.get_new_fig()
+        self.add_centers(ax)
+        self.add_route(ax)
+        self.add_midline(ax)
+        self.add_modified_range_circles(ax, angle=0)
+        ax.add_patch(plt.Circle(midpoint,radius=.5,ec=center_point_color,fc=None,fill=False))
+        save_plot(fig, 'circles_route_midpoint_marked')
+
     def test_create_circles_affine(self):
-        fig,axs = plt.subplots(1,3,figsize=(fig_h*1.8,fig_h))
+        fig,axs = plt.subplots(1,3,figsize=(fig_h*1.5,fig_h*.5))
         ax = axs[0]
         ax.set_aspect('equal')
         self.add_centers(ax)
@@ -176,7 +185,7 @@ class TestCreatePresentationImages(TestCase):
 
     def test_create_circles_affine_to_complex_log(self):
 
-        fig, axs = plt.subplots(2,2, figsize=(fig_h * 1.8, fig_h))
+        fig, axs = plt.subplots(2,2, figsize=(fig_h * 2, fig_h))
 
 
         for i, ax,title in zip([0, 1], [axs[0,0], axs[0,1]],["$p=1$","$p=2$"]):
@@ -211,7 +220,7 @@ class TestCreatePresentationImages(TestCase):
 
     def test_create_circles_affine_to_complex_log_flipped(self):
 
-        fig, axs = plt.subplots(2,2, figsize=(fig_h * 1.8, fig_h))
+        fig, axs = plt.subplots(2,2, figsize=(fig_h * 2, fig_h))
 
 
         for i, ax,title in zip([0, 1], [axs[0,0], axs[0,1]],["$p=1$","$p=2$"]):
@@ -244,7 +253,7 @@ class TestCreatePresentationImages(TestCase):
         save_plot(fig, 'circles_affine_to_cl_flipped')
 
     def test_create_circles_affine_smoothed(self):
-        fig, axs = plt.subplots(1, 3, figsize=(fig_h * 1.8, fig_h))
+        fig, axs = plt.subplots(1, 3, figsize=(fig_h * 1.5, fig_h*.5))
         ax = axs[0]
         ax.set_aspect('equal')
         self.add_centers(ax)
