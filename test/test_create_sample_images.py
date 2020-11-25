@@ -119,7 +119,7 @@ class CreateSampleImages(TestCase):
                             (int(w*d),int(h*(1-d))),
                             cv2.FONT_HERSHEY_SIMPLEX,
                             fontscale,
-                            (240,240,240),
+                            (255,10,10),
                             linethickness,
                             cv2.LINE_AA)
                 out.write(im)
@@ -177,7 +177,7 @@ class CreateSampleImages(TestCase):
                             (int(w * d), int(h * (1 - d))),
                             cv2.FONT_HERSHEY_SIMPLEX,
                             fontscale,
-                            (240, 240, 240),
+                            (255, 10, 1),
                             linethickness,
                             cv2.LINE_AA)
                 out.write(im)
