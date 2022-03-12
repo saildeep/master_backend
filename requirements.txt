@@ -1,5 +1,5 @@
 numpy==1.18.4
-Pillow==7.1.2
+Pillow==9.0.1
 Flask==1.1.2
 matplotlib==3.3.2
 requests==2.23.0
