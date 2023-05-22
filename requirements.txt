@@ -2,7 +2,7 @@ numpy==1.18.4
 Pillow==7.1.2
 Flask==1.1.2
 matplotlib==3.3.2
-requests==2.23.0
+requests==2.31.0
 flask-caching==1.9.0
 pylibmc==1.6.1
 flask-cors==3.0.9
